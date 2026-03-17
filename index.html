@@ -37,6 +37,11 @@
                     </div>
                     <input type="text" id="manual-tags" placeholder="Tags (kommagetrennt)">
                     <textarea id="manual-description" placeholder="Beschreibung der Erfahrung ..." rows="4"></textarea>
+                    <div class="insights-section">
+                        <label class="insights-label">Erkenntnisse / Antworten</label>
+                        <div class="insights-list" id="manual-insights"></div>
+                        <button type="button" class="btn btn-small btn-add-insight" id="btn-add-manual-insight">+</button>
+                    </div>
                     <div class="eingabe-date-row">
                         <label>Erfassungsdatum: <input type="date" id="manual-date"></label>
                     </div>
@@ -195,6 +200,11 @@
                 </div>
                 <label>Tags<input type="text" id="edit-tags" placeholder="kommagetrennt"></label>
                 <label>Beschreibung<textarea id="edit-description" rows="3"></textarea></label>
+                <div class="insights-section">
+                    <label class="insights-label">Erkenntnisse / Antworten</label>
+                    <div class="insights-list" id="edit-insights"></div>
+                    <button type="button" class="btn btn-small btn-add-insight" id="btn-add-edit-insight">+</button>
+                </div>
                 <div class="modal-time-row">
                     <label>Erfassungsdatum<input type="date" id="edit-date"></label>
                 </div>

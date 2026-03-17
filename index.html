@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erfahrungen</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <header>
+            <h1>Erfahrungen</h1>
+            <nav>
+                <button class="nav-btn active" data-view="tracker">Eingabe</button>
+                <button class="nav-btn" data-view="entries">Einträge</button>
+                <button class="nav-btn" data-view="reports">Berichte</button>
+                <button class="nav-btn" data-view="search">Suche</button>
+                <button class="nav-btn" data-view="settings">Einstellungen</button>
+            </nav>
+        </header>
+
+        <!-- Eingabe View -->
+        <section id="tracker" class="view active">
+            <div class="eingabe-card">
+                <h3>Neue Erfahrung erfassen</h3>
+                <div class="eingabe-form">
+                    <input type="text" id="manual-task" placeholder="Erfahrung ..." autocomplete="off">
+                    <select id="manual-project">
+                        <option value="">-- Bezugsperson / Bezugsobjekt wählen --</option>
+                    </select>
+                    <select id="manual-category">
+                        <option value="">-- primärer Auslöser wählen --</option>
+                    </select>
+                    <select id="manual-trigger">
+                        <option value="">-- meine Trigger wählen --</option>
+                    </select>
+                    <input type="text" id="manual-tags" placeholder="Tags (kommagetrennt)">
+                    <textarea id="manual-description" placeholder="Beschreibung der Erfahrung ..." rows="4"></textarea>
+                    <div class="eingabe-date-row">
+                        <label>Erfassungsdatum: <input type="date" id="manual-date"></label>
+                    </div>
+                    <button id="btn-manual-add" class="btn btn-primary">Hinzufügen</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Entries View -->
+        <section id="entries" class="view">
+            <div class="entries-header">
+                <h2>Einträge</h2>
+                <div class="entries-filters">
+                    <button id="filter-date-prev" class="btn btn-small">&larr;</button>
+                    <input type="date" id="filter-date">
+                    <button id="filter-date-next" class="btn btn-small">&rarr;</button>
+                    <select id="filter-project">
+                        <option value="">Alle Bezugsperson / Bezugsobjekt</option>
+                    </select>
+                    <select id="filter-category">
+                        <option value="">Alle primäre Auslöser</option>
+                    </select>
+                    <select id="filter-trigger">
+                        <option value="">Alle Trigger</option>
+                    </select>
+                    <button id="btn-export" class="btn btn-secondary">CSV Export</button>
+                </div>
+            </div>
+            <div class="entries-list" id="entries-list"></div>
+        </section>
+
+        <!-- Reports View -->
+        <section id="reports" class="view">
+            <div class="reports-header">
+                <h2>Berichte</h2>
+                <div class="report-controls">
+                    <button class="report-tab active" data-period="day">Tag</button>
+                    <button class="report-tab" data-period="week">Woche</button>
+                    <button class="report-tab" data-period="month">Monat</button>
+                    <button class="report-tab" data-period="year">Jahr</button>
+                </div>
+                <div class="report-custom-range">
+                    <label>Von <input type="date" id="report-range-start"></label>
+                    <label>Bis <input type="date" id="report-range-end"></label>
+                    <button class="btn btn-primary btn-small" id="report-range-apply">Anwenden</button>
+                </div>
+                <div class="report-nav">
+                    <button id="report-prev" class="btn btn-small">&larr;</button>
+                    <span id="report-date-label"></span>
+                    <button id="report-next" class="btn btn-small">&rarr;</button>
+                </div>
+            </div>
+            <div class="report-summary" id="report-summary"></div>
+            <div class="charts-container">
+                <div class="chart-box">
+                    <h3>Anzahl Bezugsperson / Bezugsobjekt</h3>
+                    <canvas id="chart-projects"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h3>Anzahl primäre Auslöser</h3>
+                    <canvas id="chart-categories"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h3>Anzahl meine Trigger</h3>
+                    <canvas id="chart-triggers"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search View -->
+        <section id="search" class="view">
+            <div class="search-header">
+                <h2>Suche</h2>
+                <div class="search-filters">
+                    <input type="text" id="search-text" placeholder="Erfahrung oder Tag suchen...">
+                    <div class="multi-select" id="search-project-select">
+                        <div class="multi-select-toggle">Bezugsperson / Bezugsobjekt</div>
+                        <div class="multi-select-dropdown"></div>
+                    </div>
+                    <div class="multi-select" id="search-category-select">
+                        <div class="multi-select-toggle">primärer Auslöser</div>
+                        <div class="multi-select-dropdown"></div>
+                    </div>
+                    <div class="multi-select" id="search-trigger-select">
+                        <div class="multi-select-toggle">Trigger</div>
+                        <div class="multi-select-dropdown"></div>
+                    </div>
+                </div>
+                <div class="search-actions-row">
+                    <button id="btn-show-all" class="btn btn-secondary">Alle anzeigen</button>
+                    <button id="btn-search" class="btn btn-primary">Suchen</button>
+                    <button id="btn-search-reset" class="btn btn-secondary">Reset</button>
+                    <button id="btn-search-export" class="btn btn-secondary">CSV Export</button>
+                </div>
+            </div>
+            <div class="search-result-count" id="search-result-count"></div>
+            <div class="entries-list" id="search-results"></div>
+        </section>
+
+        <!-- Settings View -->
+        <section id="settings" class="view">
+            <h2>Einstellungen</h2>
+            <div class="settings-section">
+                <h3>Bezugsperson / Bezugsobjekt</h3>
+                <div class="settings-list" id="project-list"></div>
+                <div class="settings-add">
+                    <input type="text" id="new-project" placeholder="Neue Bezugsperson / Bezugsobjekt...">
+                    <input type="color" id="new-project-color" value="#4a90d9">
+                    <button id="btn-add-project" class="btn btn-primary">+</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3>primärer Auslöser</h3>
+                <div class="settings-list" id="category-list"></div>
+                <div class="settings-add">
+                    <input type="text" id="new-category" placeholder="Neuer primärer Auslöser...">
+                    <input type="color" id="new-category-color" value="#e67e22">
+                    <button id="btn-add-category" class="btn btn-primary">+</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3>meine Trigger</h3>
+                <div class="settings-list" id="trigger-list"></div>
+                <div class="settings-add">
+                    <input type="text" id="new-trigger" placeholder="Neuer Trigger...">
+                    <input type="color" id="new-trigger-color" value="#9b59b6">
+                    <button id="btn-add-trigger" class="btn btn-primary">+</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3>Daten</h3>
+                <button id="btn-export-all" class="btn btn-secondary">Alle Daten exportieren (JSON)</button>
+                <button id="btn-import" class="btn btn-secondary">Daten importieren</button>
+                <input type="file" id="import-file" accept=".json" hidden>
+                <button id="btn-clear-data" class="btn btn-danger">Alle Daten löschen</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Edit Entry Modal -->
+    <div class="modal-overlay" id="edit-modal" hidden>
+        <div class="modal">
+            <h3>Eintrag bearbeiten</h3>
+            <div class="modal-form">
+                <label>Erfahrung<input type="text" id="edit-task"></label>
+                <label>Bezugsperson / Bezugsobjekt
+                    <select id="edit-project"></select>
+                </label>
+                <label>primärer Auslöser
+                    <select id="edit-category"></select>
+                </label>
+                <label>meine Trigger
+                    <select id="edit-trigger"></select>
+                </label>
+                <label>Tags<input type="text" id="edit-tags" placeholder="kommagetrennt"></label>
+                <label>Beschreibung<textarea id="edit-description" rows="3"></textarea></label>
+                <div class="modal-time-row">
+                    <label>Erfassungsdatum<input type="date" id="edit-date"></label>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="edit-save">Speichern</button>
+                <button class="btn btn-secondary" id="edit-cancel">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

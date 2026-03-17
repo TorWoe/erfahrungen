@@ -562,6 +562,17 @@ textarea::placeholder {
     flex-shrink: 0;
 }
 
+/* Inline Multi-Select (Eingabe + Edit Modal) */
+.inline-multi-select {
+    min-width: 0;
+    flex: unset;
+    width: 100%;
+}
+
+.modal-form .inline-multi-select {
+    width: 100%;
+}
+
 /* Settings */
 .settings-section {
     background: var(--bg-card);

@@ -225,6 +225,7 @@
             tags: $('#manual-tags').value.split(',').map((t) => t.trim()).filter(Boolean),
             description: $('#manual-description').value.trim(),
             date: date,
+            timestamp: new Date().toISOString(),
         };
         state.entries.push(entry);
         save();
@@ -251,7 +252,11 @@
         if (filterCategory) filtered = filtered.filter((e) => e.category === filterCategory);
         if (filterTrigger) filtered = filtered.filter((e) => getEntryTriggers(e).includes(filterTrigger));
 
-        filtered.sort((a, b) => b.date.localeCompare(a.date));
+        filtered.sort((a, b) => {
+            const cmp = b.date.localeCompare(a.date);
+            if (cmp !== 0) return cmp;
+            return (b.timestamp || '').localeCompare(a.timestamp || '');
+        });
 
         const list = $('#entries-list');
         if (filtered.length === 0) {
@@ -648,7 +653,11 @@
             filtered = filtered.filter((e) => getEntryTriggers(e).some((tid) => selectedTriggers.includes(tid)));
         }
 
-        filtered.sort((a, b) => b.date.localeCompare(a.date));
+        filtered.sort((a, b) => {
+            const cmp = b.date.localeCompare(a.date);
+            if (cmp !== 0) return cmp;
+            return (b.timestamp || '').localeCompare(a.timestamp || '');
+        });
 
         return { filtered, query, selectedProjects, selectedCategories, selectedTriggers };
     }
@@ -735,7 +744,11 @@
     });
 
     $('#btn-show-all').addEventListener('click', () => {
-        const filtered = [...state.entries].sort((a, b) => b.date.localeCompare(a.date));
+        const filtered = [...state.entries].sort((a, b) => {
+            const cmp = b.date.localeCompare(a.date);
+            if (cmp !== 0) return cmp;
+            return (b.timestamp || '').localeCompare(a.timestamp || '');
+        });
 
         const countEl = $('#search-result-count');
         const list = $('#search-results');
@@ -937,6 +950,7 @@
         entry.tags = $('#edit-tags').value.split(',').map((t) => t.trim()).filter(Boolean);
         entry.description = $('#edit-description').value.trim();
         entry.date = date;
+        entry.timestamp = new Date().toISOString();
 
         save();
         $('#edit-modal').hidden = true;

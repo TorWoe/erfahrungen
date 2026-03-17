@@ -31,9 +31,10 @@
                     <select id="manual-category">
                         <option value="">-- primärer Auslöser wählen --</option>
                     </select>
-                    <select id="manual-trigger">
-                        <option value="">-- meine Trigger wählen --</option>
-                    </select>
+                    <div class="multi-select inline-multi-select" id="manual-trigger-select">
+                        <div class="multi-select-toggle">-- meine Trigger wählen --</div>
+                        <div class="multi-select-dropdown"></div>
+                    </div>
                     <input type="text" id="manual-tags" placeholder="Tags (kommagetrennt)">
                     <textarea id="manual-description" placeholder="Beschreibung der Erfahrung ..." rows="4"></textarea>
                     <div class="eingabe-date-row">
@@ -187,9 +188,11 @@
                 <label>primärer Auslöser
                     <select id="edit-category"></select>
                 </label>
-                <label>meine Trigger
-                    <select id="edit-trigger"></select>
-                </label>
+                <label>meine Trigger</label>
+                <div class="multi-select inline-multi-select" id="edit-trigger-select">
+                    <div class="multi-select-toggle">-- meine Trigger wählen --</div>
+                    <div class="multi-select-dropdown"></div>
+                </div>
                 <label>Tags<input type="text" id="edit-tags" placeholder="kommagetrennt"></label>
                 <label>Beschreibung<textarea id="edit-description" rows="3"></textarea></label>
                 <div class="modal-time-row">

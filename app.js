@@ -98,7 +98,6 @@
     function populateSelects() {
         const projectSelects = ['#manual-project', '#filter-project'];
         const categorySelects = ['#manual-category', '#filter-category'];
-        const triggerSelects = ['#manual-trigger', '#filter-trigger'];
 
         projectSelects.forEach((sel) => {
             const el = $(sel);
@@ -122,16 +121,87 @@
             el.value = val;
         });
 
-        triggerSelects.forEach((sel) => {
-            const el = $(sel);
-            const val = el.value;
-            const isFilter = sel.includes('filter');
-            el.innerHTML = `<option value="">${isFilter ? 'Alle Trigger' : '-- meine Trigger wählen --'}</option>`;
-            state.triggers.forEach((t) => {
-                el.innerHTML += `<option value="${t.id}">${escHtml(t.name)}</option>`;
-            });
-            el.value = val;
+        // Filter-Trigger bleibt ein normaler Select
+        const filterTrigEl = $('#filter-trigger');
+        const filterTrigVal = filterTrigEl.value;
+        filterTrigEl.innerHTML = '<option value="">Alle Trigger</option>';
+        state.triggers.forEach((t) => {
+            filterTrigEl.innerHTML += `<option value="${t.id}">${escHtml(t.name)}</option>`;
         });
+        filterTrigEl.value = filterTrigVal;
+
+        // Multi-Select Trigger für Eingabe
+        populateInlineTriggerSelect('manual-trigger-select', '-- meine Trigger wählen --');
+    }
+
+    function populateInlineTriggerSelect(containerId, labelDefault, selectedIds) {
+        const container = $(`#${containerId}`);
+        const dropdown = container.querySelector('.multi-select-dropdown');
+        const toggle = container.querySelector('.multi-select-toggle');
+        const selected = selectedIds || [];
+
+        dropdown.innerHTML = state.triggers
+            .map((t) => `<label class="multi-select-option">
+                <input type="checkbox" value="${t.id}"${selected.includes(t.id) ? ' checked' : ''}>
+                <span class="color-dot" style="background:${t.color}"></span>
+                ${escHtml(t.name)}
+            </label>`)
+            .join('');
+
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
+
+        updateInlineTriggerToggle(containerId, labelDefault);
+
+        // Remove old listeners by cloning
+        const newToggle = toggle.cloneNode(true);
+        toggle.parentNode.replaceChild(newToggle, toggle);
+
+        newToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            $$('.multi-select-dropdown').forEach((d) => {
+                if (d !== dropdown) d.classList.remove('open');
+            });
+            dropdown.classList.toggle('open');
+        });
+
+        dropdown.addEventListener('change', () => {
+            updateInlineTriggerToggle(containerId, labelDefault);
+        });
+    }
+
+    function updateInlineTriggerToggle(containerId, labelDefault) {
+        const container = $(`#${containerId}`);
+        const dropdown = container.querySelector('.multi-select-dropdown');
+        const toggle = container.querySelector('.multi-select-toggle');
+        const checked = dropdown.querySelectorAll('input:checked');
+        if (checked.length === 0) {
+            toggle.textContent = labelDefault;
+        } else {
+            const names = Array.from(checked).map((cb) => {
+                const item = state.triggers.find((t) => t.id === cb.value);
+                return item ? item.name : '';
+            });
+            toggle.textContent = names.join(', ');
+        }
+    }
+
+    function getInlineTriggerValues(containerId) {
+        const checkboxes = $(`#${containerId}`).querySelectorAll('.multi-select-dropdown input:checked');
+        return Array.from(checkboxes).map((cb) => cb.value);
+    }
+
+    function clearInlineTriggerSelect(containerId, labelDefault) {
+        const container = $(`#${containerId}`);
+        const checkboxes = container.querySelectorAll('.multi-select-dropdown input[type="checkbox"]');
+        checkboxes.forEach((cb) => { cb.checked = false; });
+        container.querySelector('.multi-select-toggle').textContent = labelDefault;
+    }
+
+    // Helper: normalize entry triggers (backward compat: single trigger string → array)
+    function getEntryTriggers(entry) {
+        if (Array.isArray(entry.triggers)) return entry.triggers;
+        if (entry.trigger) return [entry.trigger];
+        return [];
     }
 
     // ── Manual Entry (Eingabe) ──
@@ -151,7 +221,7 @@
             task: task,
             project: $('#manual-project').value,
             category: $('#manual-category').value,
-            trigger: $('#manual-trigger').value,
+            triggers: getInlineTriggerValues('manual-trigger-select'),
             tags: $('#manual-tags').value.split(',').map((t) => t.trim()).filter(Boolean),
             description: $('#manual-description').value.trim(),
             date: date,
@@ -163,7 +233,7 @@
         $('#manual-description').value = '';
         $('#manual-project').value = '';
         $('#manual-category').value = '';
-        $('#manual-trigger').value = '';
+        clearInlineTriggerSelect('manual-trigger-select', '-- meine Trigger wählen --');
         $('#manual-date').value = todayStr();
         alert('Erfahrung erfolgreich erfasst!');
     });
@@ -179,7 +249,7 @@
         if (filterDate) filtered = filtered.filter((e) => e.date === filterDate);
         if (filterProject) filtered = filtered.filter((e) => e.project === filterProject);
         if (filterCategory) filtered = filtered.filter((e) => e.category === filterCategory);
-        if (filterTrigger) filtered = filtered.filter((e) => e.trigger === filterTrigger);
+        if (filterTrigger) filtered = filtered.filter((e) => getEntryTriggers(e).includes(filterTrigger));
 
         filtered.sort((a, b) => b.date.localeCompare(a.date));
 
@@ -193,11 +263,14 @@
             .map((e) => {
                 const proj = state.projects.find((p) => p.id === e.project);
                 const cat = state.categories.find((c) => c.id === e.category);
-                const trig = state.triggers.find((t) => t.id === e.trigger);
+                const trigIds = getEntryTriggers(e);
                 const tagsHtml = (e.tags || []).map((t) => `<span class="tag">${escHtml(t)}</span>`).join('');
                 const projBadge = proj ? `<span class="project-badge" style="background:${proj.color}22;color:${proj.color}">${escHtml(proj.name)}</span>` : '';
                 const catBadge = cat ? `<span class="category-badge" style="background:${cat.color}22;color:${cat.color}">${escHtml(cat.name)}</span>` : '';
-                const trigBadge = trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
+                const trigBadges = trigIds.map((tid) => {
+                    const trig = state.triggers.find((t) => t.id === tid);
+                    return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
+                }).join('');
                 const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
 
                 return `<div class="entry-card">
@@ -205,7 +278,7 @@
                         <div class="entry-task">${escHtml(e.task)}</div>
                         <div class="entry-meta">
                             <span>${e.date}</span>
-                            ${projBadge}${catBadge}${trigBadge}
+                            ${projBadge}${catBadge}${trigBadges}
                         </div>
                         <div style="margin-top:4px">${tagsHtml}</div>
                         ${descHtml}
@@ -251,14 +324,17 @@
         if (filterDate) filtered = filtered.filter((e) => e.date === filterDate);
         if (filterProject) filtered = filtered.filter((e) => e.project === filterProject);
         if (filterCategory) filtered = filtered.filter((e) => e.category === filterCategory);
-        if (filterTrigger) filtered = filtered.filter((e) => e.trigger === filterTrigger);
+        if (filterTrigger) filtered = filtered.filter((e) => getEntryTriggers(e).includes(filterTrigger));
 
         const headers = ['Erfassungsdatum', 'Erfahrung', 'Bezugsperson/Bezugsobjekt', 'primärer Auslöser', 'Trigger', 'Tags', 'Beschreibung'];
         const rows = filtered.map((e) => {
             const proj = state.projects.find((p) => p.id === e.project);
             const cat = state.categories.find((c) => c.id === e.category);
-            const trig = state.triggers.find((t) => t.id === e.trigger);
-            return [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trig ? trig.name : '', (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
+            const trigNames = getEntryTriggers(e).map((tid) => {
+                const t = state.triggers.find((tr) => tr.id === tid);
+                return t ? t.name : '';
+            }).filter(Boolean).join('; ');
+            return [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
         });
 
         const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
@@ -455,14 +531,22 @@
             },
         });
 
-        // Trigger chart (count)
+        // Trigger chart (count) – each trigger of an entry counted separately
         const trigData = {};
         entries.forEach((e) => {
-            const trig = state.triggers.find((t) => t.id === e.trigger);
-            const name = trig ? trig.name : 'Ohne Trigger';
-            const color = trig ? trig.color : '#999';
-            if (!trigData[name]) trigData[name] = { count: 0, color };
-            trigData[name].count++;
+            const trigIds = getEntryTriggers(e);
+            if (trigIds.length === 0) {
+                if (!trigData['Ohne Trigger']) trigData['Ohne Trigger'] = { count: 0, color: '#999' };
+                trigData['Ohne Trigger'].count++;
+            } else {
+                trigIds.forEach((tid) => {
+                    const trig = state.triggers.find((t) => t.id === tid);
+                    const name = trig ? trig.name : 'Ohne Trigger';
+                    const color = trig ? trig.color : '#999';
+                    if (!trigData[name]) trigData[name] = { count: 0, color };
+                    trigData[name].count++;
+                });
+            }
         });
 
         if (chartTriggers) chartTriggers.destroy();
@@ -499,6 +583,8 @@
                 ${escHtml(item.name)}
             </label>`)
             .join('');
+
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
 
         toggle.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -559,7 +645,7 @@
         }
 
         if (selectedTriggers.length > 0) {
-            filtered = filtered.filter((e) => selectedTriggers.includes(e.trigger));
+            filtered = filtered.filter((e) => getEntryTriggers(e).some((tid) => selectedTriggers.includes(tid)));
         }
 
         filtered.sort((a, b) => b.date.localeCompare(a.date));
@@ -590,11 +676,14 @@
             .map((e) => {
                 const proj = state.projects.find((p) => p.id === e.project);
                 const cat = state.categories.find((c) => c.id === e.category);
-                const trig = state.triggers.find((t) => t.id === e.trigger);
+                const trigIds = getEntryTriggers(e);
                 const tagsHtml = (e.tags || []).map((t) => `<span class="tag">${escHtml(t)}</span>`).join('');
                 const projBadge = proj ? `<span class="project-badge" style="background:${proj.color}22;color:${proj.color}">${escHtml(proj.name)}</span>` : '';
                 const catBadge = cat ? `<span class="category-badge" style="background:${cat.color}22;color:${cat.color}">${escHtml(cat.name)}</span>` : '';
-                const trigBadge = trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
+                const trigBadges = trigIds.map((tid) => {
+                    const trig = state.triggers.find((t) => t.id === tid);
+                    return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
+                }).join('');
                 const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
 
                 return `<div class="entry-card">
@@ -602,7 +691,7 @@
                         <div class="entry-task">${escHtml(e.task)}</div>
                         <div class="entry-meta">
                             <span>${e.date}</span>
-                            ${projBadge}${catBadge}${trigBadge}
+                            ${projBadge}${catBadge}${trigBadges}
                         </div>
                         <div style="margin-top:4px">${tagsHtml}</div>
                         ${descHtml}
@@ -628,8 +717,11 @@
         const rows = filtered.map((e) => {
             const proj = state.projects.find((p) => p.id === e.project);
             const cat = state.categories.find((c) => c.id === e.category);
-            const trig = state.triggers.find((t) => t.id === e.trigger);
-            return [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trig ? trig.name : '', (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
+            const trigNames = getEntryTriggers(e).map((tid) => {
+                const t = state.triggers.find((tr) => tr.id === tid);
+                return t ? t.name : '';
+            }).filter(Boolean).join('; ');
+            return [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
         });
 
         const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
@@ -659,11 +751,14 @@
             .map((e) => {
                 const proj = state.projects.find((p) => p.id === e.project);
                 const cat = state.categories.find((c) => c.id === e.category);
-                const trig = state.triggers.find((t) => t.id === e.trigger);
+                const trigIds = getEntryTriggers(e);
                 const tagsHtml = (e.tags || []).map((t) => `<span class="tag">${escHtml(t)}</span>`).join('');
                 const projBadge = proj ? `<span class="project-badge" style="background:${proj.color}22;color:${proj.color}">${escHtml(proj.name)}</span>` : '';
                 const catBadge = cat ? `<span class="category-badge" style="background:${cat.color}22;color:${cat.color}">${escHtml(cat.name)}</span>` : '';
-                const trigBadge = trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
+                const trigBadges = trigIds.map((tid) => {
+                    const trig = state.triggers.find((t) => t.id === tid);
+                    return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
+                }).join('');
                 const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
 
                 return `<div class="entry-card">
@@ -671,7 +766,7 @@
                         <div class="entry-task">${escHtml(e.task)}</div>
                         <div class="entry-meta">
                             <span>${e.date}</span>
-                            ${projBadge}${catBadge}${trigBadge}
+                            ${projBadge}${catBadge}${trigBadges}
                         </div>
                         <div style="margin-top:4px">${tagsHtml}</div>
                         ${descHtml}
@@ -811,16 +906,11 @@
             catSel.innerHTML += `<option value="${c.id}">${escHtml(c.name)}</option>`;
         });
 
-        const trigSel = $('#edit-trigger');
-        trigSel.innerHTML = '<option value="">-- meine Trigger wählen --</option>';
-        state.triggers.forEach((t) => {
-            trigSel.innerHTML += `<option value="${t.id}">${escHtml(t.name)}</option>`;
-        });
+        populateInlineTriggerSelect('edit-trigger-select', '-- meine Trigger wählen --', getEntryTriggers(entry));
 
         $('#edit-task').value = entry.task;
         projSel.value = entry.project;
         catSel.value = entry.category;
-        trigSel.value = entry.trigger || '';
         $('#edit-tags').value = (entry.tags || []).join(', ');
         $('#edit-description').value = entry.description || '';
         $('#edit-date').value = entry.date;
@@ -842,7 +932,8 @@
         entry.task = task;
         entry.project = $('#edit-project').value;
         entry.category = $('#edit-category').value;
-        entry.trigger = $('#edit-trigger').value;
+        entry.triggers = getInlineTriggerValues('edit-trigger-select');
+        delete entry.trigger;
         entry.tags = $('#edit-tags').value.split(',').map((t) => t.trim()).filter(Boolean);
         entry.description = $('#edit-description').value.trim();
         entry.date = date;

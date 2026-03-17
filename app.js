@@ -204,8 +204,41 @@
         return [];
     }
 
+    // ── Insights helpers ──
+    function addInsightRow(containerId, value) {
+        const container = $('#' + containerId);
+        const row = document.createElement('div');
+        row.className = 'insight-row';
+        const ta = document.createElement('textarea');
+        ta.placeholder = 'Erkenntnis / Antwort ...';
+        ta.rows = 2;
+        ta.value = value || '';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn-remove-insight';
+        btn.textContent = '\u00d7';
+        btn.addEventListener('click', () => row.remove());
+        row.appendChild(ta);
+        row.appendChild(btn);
+        container.appendChild(row);
+    }
+
+    function getInsightValues(containerId) {
+        const rows = $('#' + containerId).querySelectorAll('.insight-row textarea');
+        return Array.from(rows).map((ta) => ta.value.trim()).filter(Boolean);
+    }
+
+    function clearInsights(containerId) {
+        $('#' + containerId).innerHTML = '';
+    }
+
     // ── Manual Entry (Eingabe) ──
     $('#manual-date').value = todayStr();
+    addInsightRow('manual-insights', '');
+
+    $('#btn-add-manual-insight').addEventListener('click', () => {
+        addInsightRow('manual-insights', '');
+    });
 
     $('#btn-manual-add').addEventListener('click', () => {
         const task = $('#manual-task').value.trim();
@@ -224,6 +257,7 @@
             triggers: getInlineTriggerValues('manual-trigger-select'),
             tags: $('#manual-tags').value.split(',').map((t) => t.trim()).filter(Boolean),
             description: $('#manual-description').value.trim(),
+            insights: getInsightValues('manual-insights'),
             date: date,
             timestamp: new Date().toISOString(),
         };
@@ -235,6 +269,8 @@
         $('#manual-project').value = '';
         $('#manual-category').value = '';
         clearInlineTriggerSelect('manual-trigger-select', '-- meine Trigger wählen --');
+        clearInsights('manual-insights');
+        addInsightRow('manual-insights', '');
         $('#manual-date').value = todayStr();
         alert('Erfahrung erfolgreich erfasst!');
     });
@@ -277,6 +313,9 @@
                     return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
                 }).join('');
                 const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
+                const insightsHtml = (e.insights || []).length > 0
+                    ? `<div class="entry-insights"><strong>Erkenntnisse / Antworten:</strong><ul>${e.insights.map((i) => `<li>${escHtml(i)}</li>`).join('')}</ul></div>`
+                    : '';
 
                 return `<div class="entry-card">
                     <div class="entry-info">
@@ -287,6 +326,7 @@
                         </div>
                         <div style="margin-top:4px">${tagsHtml}</div>
                         ${descHtml}
+                        ${insightsHtml}
                     </div>
                     <div class="entry-actions">
                         <button onclick="app.editEntry('${e.id}')">Bearbeiten</button>
@@ -331,7 +371,9 @@
         if (filterCategory) filtered = filtered.filter((e) => e.category === filterCategory);
         if (filterTrigger) filtered = filtered.filter((e) => getEntryTriggers(e).includes(filterTrigger));
 
+        const maxInsights = filtered.reduce((max, e) => Math.max(max, (e.insights || []).length), 0);
         const headers = ['Erfassungsdatum', 'Erfahrung', 'Bezugsperson/Bezugsobjekt', 'primärer Auslöser', 'Trigger', 'Tags', 'Beschreibung'];
+        for (let i = 1; i <= maxInsights; i++) headers.push(`Erkenntnis ${i}`);
         const rows = filtered.map((e) => {
             const proj = state.projects.find((p) => p.id === e.project);
             const cat = state.categories.find((c) => c.id === e.category);
@@ -339,7 +381,10 @@
                 const t = state.triggers.find((tr) => tr.id === tid);
                 return t ? t.name : '';
             }).filter(Boolean).join('; ');
-            return [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
+            const row = [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
+            const ins = e.insights || [];
+            for (let i = 0; i < maxInsights; i++) row.push(`"${(ins[i] || '').replace(/"/g, '""')}"`);
+            return row;
         });
 
         const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
@@ -694,6 +739,9 @@
                     return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
                 }).join('');
                 const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
+                const insightsHtml = (e.insights || []).length > 0
+                    ? `<div class="entry-insights"><strong>Erkenntnisse / Antworten:</strong><ul>${e.insights.map((i) => `<li>${escHtml(i)}</li>`).join('')}</ul></div>`
+                    : '';
 
                 return `<div class="entry-card">
                     <div class="entry-info">
@@ -704,6 +752,7 @@
                         </div>
                         <div style="margin-top:4px">${tagsHtml}</div>
                         ${descHtml}
+                        ${insightsHtml}
                     </div>
                 </div>`;
             })
@@ -722,7 +771,9 @@
             return;
         }
 
+        const maxInsights = filtered.reduce((max, e) => Math.max(max, (e.insights || []).length), 0);
         const headers = ['Erfassungsdatum', 'Erfahrung', 'Bezugsperson/Bezugsobjekt', 'primärer Auslöser', 'Trigger', 'Tags', 'Beschreibung'];
+        for (let i = 1; i <= maxInsights; i++) headers.push(`Erkenntnis ${i}`);
         const rows = filtered.map((e) => {
             const proj = state.projects.find((p) => p.id === e.project);
             const cat = state.categories.find((c) => c.id === e.category);
@@ -730,7 +781,10 @@
                 const t = state.triggers.find((tr) => tr.id === tid);
                 return t ? t.name : '';
             }).filter(Boolean).join('; ');
-            return [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
+            const row = [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
+            const ins = e.insights || [];
+            for (let i = 0; i < maxInsights; i++) row.push(`"${(ins[i] || '').replace(/"/g, '""')}"`);
+            return row;
         });
 
         const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
@@ -773,6 +827,9 @@
                     return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
                 }).join('');
                 const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
+                const insightsHtml = (e.insights || []).length > 0
+                    ? `<div class="entry-insights"><strong>Erkenntnisse / Antworten:</strong><ul>${e.insights.map((i) => `<li>${escHtml(i)}</li>`).join('')}</ul></div>`
+                    : '';
 
                 return `<div class="entry-card">
                     <div class="entry-info">
@@ -783,6 +840,7 @@
                         </div>
                         <div style="margin-top:4px">${tagsHtml}</div>
                         ${descHtml}
+                        ${insightsHtml}
                     </div>
                 </div>`;
             })
@@ -926,10 +984,21 @@
         catSel.value = entry.category;
         $('#edit-tags').value = (entry.tags || []).join(', ');
         $('#edit-description').value = entry.description || '';
+        clearInsights('edit-insights');
+        const ins = entry.insights || [];
+        if (ins.length === 0) {
+            addInsightRow('edit-insights', '');
+        } else {
+            ins.forEach((i) => addInsightRow('edit-insights', i));
+        }
         $('#edit-date').value = entry.date;
 
         modal.hidden = false;
     }
+
+    $('#btn-add-edit-insight').addEventListener('click', () => {
+        addInsightRow('edit-insights', '');
+    });
 
     $('#edit-save').addEventListener('click', () => {
         const task = $('#edit-task').value.trim();
@@ -949,6 +1018,7 @@
         delete entry.trigger;
         entry.tags = $('#edit-tags').value.split(',').map((t) => t.trim()).filter(Boolean);
         entry.description = $('#edit-description').value.trim();
+        entry.insights = getInsightValues('edit-insights');
         entry.date = date;
         entry.timestamp = new Date().toISOString();
 

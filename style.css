@@ -104,6 +104,72 @@ nav {
     gap: 10px;
 }
 
+/* Insights / Erkenntnisse */
+.insights-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.insights-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.insights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.insight-row {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+}
+
+.insight-row textarea {
+    flex: 1;
+    min-height: 40px;
+}
+
+.insight-row .btn-remove-insight {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+.insight-row .btn-remove-insight:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.btn-add-insight {
+    align-self: flex-start;
+}
+
+.entry-insights {
+    margin-top: 6px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.entry-insights ul {
+    margin: 4px 0 0 18px;
+    padding: 0;
+}
+
+.entry-insights li {
+    margin-bottom: 2px;
+    line-height: 1.4;
+}
+
 .eingabe-date-row {
     display: flex;
     gap: 10px;

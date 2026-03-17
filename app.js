@@ -220,7 +220,7 @@
         btn.addEventListener('click', () => row.remove());
         row.appendChild(ta);
         row.appendChild(btn);
-        container.appendChild(row);
+        container.prepend(row);
     }
 
     function getInsightValues(containerId) {

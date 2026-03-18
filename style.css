@@ -767,6 +767,155 @@ textarea::placeholder {
     margin-bottom: 8px;
 }
 
+/* Tipps */
+.tips-header {
+    margin-bottom: 20px;
+}
+
+.tips-header h2 {
+    margin-bottom: 12px;
+}
+
+.tips-add {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.tips-add .tip-number-input {
+    width: 80px;
+}
+
+.tips-add input[type="text"] {
+    flex: 1;
+}
+
+.tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tip-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+}
+
+.tip-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.tip-title {
+    font-weight: 600;
+    font-size: 1rem;
+    flex: 1;
+}
+
+.tip-number {
+    background: var(--primary);
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.tip-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    white-space: pre-wrap;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.tip-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.tip-actions button {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.tip-actions button:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.tip-number-input {
+    width: 80px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+}
+
+.tip-number-input:focus {
+    border-color: var(--primary);
+}
+
+.tip-card.editing {
+    padding: 14px 18px;
+}
+
+.tip-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tip-edit-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.tip-edit-row input[type="text"] {
+    flex: 1;
+}
+
+.settings-tip-add {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.settings-tip-add textarea {
+    width: 100%;
+}
+
+.settings-tip-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.settings-item.editing .settings-tip-edit-form {
+    flex: 1;
+}
+
 /* Edit Modal */
 .modal-overlay {
     position: fixed;

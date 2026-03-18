@@ -16,6 +16,7 @@
                 <button class="nav-btn" data-view="reports">Berichte</button>
                 <button class="nav-btn" data-view="search">Suche</button>
                 <button class="nav-btn" data-view="settings">Einstellungen</button>
+                <button class="nav-btn" data-view="tips">Tipps</button>
             </nav>
         </header>
 
@@ -172,12 +173,35 @@
                 </div>
             </div>
             <div class="settings-section">
+                <h3>Tipps</h3>
+                <div class="settings-list" id="settings-tips-list"></div>
+                <div class="settings-add settings-tip-add">
+                    <input type="text" id="settings-new-tip-title" placeholder="Überschrift des Tipps...">
+                    <input type="number" id="settings-new-tip-number" placeholder="Nr." min="1" step="1" class="tip-number-input">
+                    <textarea id="settings-new-tip-text" placeholder="Text / Beschreibung des Tipps..." rows="2"></textarea>
+                    <button id="btn-settings-add-tip" class="btn btn-primary">+</button>
+                </div>
+            </div>
+            <div class="settings-section">
                 <h3>Daten</h3>
                 <button id="btn-export-all" class="btn btn-secondary">Alle Daten exportieren (JSON)</button>
                 <button id="btn-import" class="btn btn-secondary">Daten importieren</button>
                 <input type="file" id="import-file" accept=".json" hidden>
                 <button id="btn-clear-data" class="btn btn-danger">Alle Daten löschen</button>
             </div>
+        </section>
+        <!-- Tipps View -->
+        <section id="tips" class="view">
+            <div class="tips-header">
+                <h2>Tipps</h2>
+                <div class="tips-add">
+                    <input type="text" id="new-tip-title" placeholder="Überschrift des Tipps...">
+                    <input type="number" id="new-tip-number" placeholder="Nr." min="1" step="1" class="tip-number-input">
+                    <textarea id="new-tip-text" placeholder="Text / Beschreibung des Tipps..." rows="3"></textarea>
+                    <button id="btn-add-tip" class="btn btn-primary">Tipp hinzufügen</button>
+                </div>
+            </div>
+            <div class="tips-list" id="tips-list"></div>
         </section>
     </div>
 

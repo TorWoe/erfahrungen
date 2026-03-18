@@ -1235,22 +1235,6 @@
         }).join('');
     }
 
-    $('#btn-add-tip').addEventListener('click', () => {
-        const title = $('#new-tip-title').value.trim();
-        if (!title) { alert('Bitte eine Überschrift eingeben.'); return; }
-        const text = $('#new-tip-text').value.trim();
-        if (!text) { alert('Bitte einen Text eingeben.'); return; }
-        const numVal = $('#new-tip-number').value.trim();
-        const number = numVal !== '' ? parseInt(numVal, 10) : null;
-        if (numVal !== '' && (isNaN(number) || number < 1)) { alert('Bitte eine positive ganze Zahl eingeben.'); return; }
-        state.tips.push({ id: uid(), title, number, text, timestamp: new Date().toISOString() });
-        save();
-        $('#new-tip-title').value = '';
-        $('#new-tip-number').value = '';
-        $('#new-tip-text').value = '';
-        renderTips();
-    });
-
     // Settings: Tipps management
     function renderSettingsTips() {
         const sorted = sortTips([...state.tips]);

@@ -7,6 +7,7 @@
         projects: [],
         categories: [],
         triggers: [],
+        tips: [],
         reportPeriod: 'day',
         reportOffset: 0,
         reportCustomStart: '',
@@ -19,6 +20,7 @@
         localStorage.setItem('erf_projects', JSON.stringify(state.projects));
         localStorage.setItem('erf_categories', JSON.stringify(state.categories));
         localStorage.setItem('erf_triggers', JSON.stringify(state.triggers));
+        localStorage.setItem('erf_tips', JSON.stringify(state.tips));
     }
 
     function load() {
@@ -27,11 +29,13 @@
             state.projects = JSON.parse(localStorage.getItem('erf_projects')) || [];
             state.categories = JSON.parse(localStorage.getItem('erf_categories')) || [];
             state.triggers = JSON.parse(localStorage.getItem('erf_triggers')) || [];
+            state.tips = JSON.parse(localStorage.getItem('erf_tips')) || [];
         } catch {
             state.entries = [];
             state.projects = [];
             state.categories = [];
             state.triggers = [];
+            state.tips = [];
         }
         if (state.projects.length === 0) {
             state.projects = [
@@ -91,6 +95,7 @@
             if (btn.dataset.view === 'reports') renderReports();
             if (btn.dataset.view === 'search') initSearchMultiSelects();
             if (btn.dataset.view === 'settings') renderSettings();
+            if (btn.dataset.view === 'tips') renderTips();
         });
     });
 
@@ -861,6 +866,7 @@
         renderSettingsList('project');
         renderSettingsList('category');
         renderSettingsList('trigger');
+        renderSettingsTips();
     }
 
     function renderSettingsList(type) {
@@ -915,7 +921,7 @@
 
     // ── Data Management ──
     $('#btn-export-all').addEventListener('click', () => {
-        const data = { entries: state.entries, projects: state.projects, categories: state.categories, triggers: state.triggers };
+        const data = { entries: state.entries, projects: state.projects, categories: state.categories, triggers: state.triggers, tips: state.tips };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -938,6 +944,7 @@
                 if (data.projects) state.projects = data.projects;
                 if (data.categories) state.categories = data.categories;
                 if (data.triggers) state.triggers = data.triggers;
+                if (data.tips) state.tips = data.tips;
                 save();
                 populateSelects();
                 alert('Daten erfolgreich importiert!');
@@ -1103,7 +1110,178 @@
         cancelEdit() {
             renderSettings();
         },
+        editTip(id) {
+            const tip = state.tips.find((t) => t.id === id);
+            if (!tip) return;
+            const el = $(`#tip-${id}`);
+            el.classList.add('editing');
+            el.innerHTML = `
+                <div class="tip-edit-form">
+                    <div class="tip-edit-row">
+                        <input type="text" class="edit-tip-title" value="${escHtml(tip.title)}" placeholder="Überschrift...">
+                        <input type="number" class="edit-tip-number tip-number-input" value="${tip.number !== null && tip.number !== undefined && tip.number !== '' ? tip.number : ''}" placeholder="Nr." min="1" step="1">
+                    </div>
+                    <textarea class="edit-tip-text" rows="3" placeholder="Text...">${escHtml(tip.text)}</textarea>
+                    <div class="tip-actions">
+                        <button onclick="app.saveTip('${id}')">Speichern</button>
+                        <button onclick="app.cancelTipEdit()">Abbrechen</button>
+                    </div>
+                </div>`;
+            el.querySelector('.edit-tip-title').focus();
+        },
+        saveTip(id) {
+            const el = $(`#tip-${id}`);
+            const title = el.querySelector('.edit-tip-title').value.trim();
+            if (!title) { alert('Bitte eine Überschrift eingeben.'); return; }
+            const text = el.querySelector('.edit-tip-text').value.trim();
+            const numVal = el.querySelector('.edit-tip-number').value.trim();
+            const number = numVal !== '' ? parseInt(numVal, 10) : null;
+            if (numVal !== '' && (isNaN(number) || number < 1)) { alert('Bitte eine positive ganze Zahl eingeben.'); return; }
+            const tip = state.tips.find((t) => t.id === id);
+            if (!tip) return;
+            tip.title = title;
+            tip.text = text;
+            tip.number = number;
+            save();
+            renderTips();
+        },
+        cancelTipEdit() {
+            renderTips();
+        },
+        deleteTip(id) {
+            if (!confirm('Tipp löschen?')) return;
+            state.tips = state.tips.filter((t) => t.id !== id);
+            save();
+            renderTips();
+        },
+        editSettingsTip(id) {
+            const tip = state.tips.find((t) => t.id === id);
+            if (!tip) return;
+            const el = $(`#settings-tip-${id}`);
+            el.classList.add('editing');
+            el.innerHTML = `
+                <div class="settings-tip-edit-form">
+                    <input type="text" class="edit-tip-title" value="${escHtml(tip.title)}" placeholder="Überschrift...">
+                    <input type="number" class="edit-tip-number tip-number-input" value="${tip.number !== null && tip.number !== undefined && tip.number !== '' ? tip.number : ''}" placeholder="Nr." min="1" step="1">
+                    <textarea class="edit-tip-text" rows="2" placeholder="Text...">${escHtml(tip.text)}</textarea>
+                    <div class="settings-item-actions">
+                        <button class="btn-save" onclick="app.saveSettingsTip('${id}')">Speichern</button>
+                        <button onclick="app.cancelSettingsTipEdit()">Abbrechen</button>
+                    </div>
+                </div>`;
+            el.querySelector('.edit-tip-title').focus();
+        },
+        saveSettingsTip(id) {
+            const el = $(`#settings-tip-${id}`);
+            const title = el.querySelector('.edit-tip-title').value.trim();
+            if (!title) return;
+            const text = el.querySelector('.edit-tip-text').value.trim();
+            const numVal = el.querySelector('.edit-tip-number').value.trim();
+            const number = numVal !== '' ? parseInt(numVal, 10) : null;
+            if (numVal !== '' && (isNaN(number) || number < 1)) { alert('Bitte eine positive ganze Zahl eingeben.'); return; }
+            const tip = state.tips.find((t) => t.id === id);
+            if (!tip) return;
+            tip.title = title;
+            tip.text = text;
+            tip.number = number;
+            save();
+            renderSettingsTips();
+        },
+        cancelSettingsTipEdit() {
+            renderSettingsTips();
+        },
+        deleteSettingsTip(id) {
+            if (!confirm('Tipp löschen?')) return;
+            state.tips = state.tips.filter((t) => t.id !== id);
+            save();
+            renderSettingsTips();
+        },
     };
+
+    // ── Tipps ──
+    function sortTips(tips) {
+        const withNum = tips.filter((t) => t.number !== null && t.number !== undefined && t.number !== '');
+        const withoutNum = tips.filter((t) => t.number === null || t.number === undefined || t.number === '');
+        withNum.sort((a, b) => {
+            const numDiff = Number(a.number) - Number(b.number);
+            if (numDiff !== 0) return numDiff;
+            return (b.timestamp || '').localeCompare(a.timestamp || '');
+        });
+        withoutNum.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+        return [...withNum, ...withoutNum];
+    }
+
+    function renderTips() {
+        const sorted = sortTips([...state.tips]);
+        const list = $('#tips-list');
+        if (sorted.length === 0) {
+            list.innerHTML = '<div class="no-entries">Keine Tipps vorhanden.</div>';
+            return;
+        }
+        list.innerHTML = sorted.map((tip) => {
+            const numDisplay = (tip.number !== null && tip.number !== undefined && tip.number !== '')
+                ? `<span class="tip-number">${escHtml(String(tip.number))}</span>` : '';
+            return `<div class="tip-card" id="tip-${tip.id}">
+                <div class="tip-header">
+                    <span class="tip-title">${escHtml(tip.title)}</span>
+                    ${numDisplay}
+                </div>
+                <div class="tip-text">${escHtml(tip.text)}</div>
+                <div class="tip-actions">
+                    <button onclick="app.editTip('${tip.id}')">Bearbeiten</button>
+                    <button onclick="app.deleteTip('${tip.id}')">Löschen</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    $('#btn-add-tip').addEventListener('click', () => {
+        const title = $('#new-tip-title').value.trim();
+        if (!title) { alert('Bitte eine Überschrift eingeben.'); return; }
+        const text = $('#new-tip-text').value.trim();
+        if (!text) { alert('Bitte einen Text eingeben.'); return; }
+        const numVal = $('#new-tip-number').value.trim();
+        const number = numVal !== '' ? parseInt(numVal, 10) : null;
+        if (numVal !== '' && (isNaN(number) || number < 1)) { alert('Bitte eine positive ganze Zahl eingeben.'); return; }
+        state.tips.push({ id: uid(), title, number, text, timestamp: new Date().toISOString() });
+        save();
+        $('#new-tip-title').value = '';
+        $('#new-tip-number').value = '';
+        $('#new-tip-text').value = '';
+        renderTips();
+    });
+
+    // Settings: Tipps management
+    function renderSettingsTips() {
+        const sorted = sortTips([...state.tips]);
+        const listEl = $('#settings-tips-list');
+        listEl.innerHTML = sorted.map((tip) => {
+            const numDisplay = (tip.number !== null && tip.number !== undefined && tip.number !== '')
+                ? ` [${tip.number}]` : '';
+            return `<div class="settings-item" id="settings-tip-${tip.id}">
+                <span class="name">${escHtml(tip.title)}${numDisplay}</span>
+                <div class="settings-item-actions">
+                    <button onclick="app.editSettingsTip('${tip.id}')">Bearbeiten</button>
+                    <button onclick="app.deleteSettingsTip('${tip.id}')">Löschen</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    $('#btn-settings-add-tip').addEventListener('click', () => {
+        const title = $('#settings-new-tip-title').value.trim();
+        if (!title) return;
+        const text = $('#settings-new-tip-text').value.trim();
+        const numVal = $('#settings-new-tip-number').value.trim();
+        const number = numVal !== '' ? parseInt(numVal, 10) : null;
+        if (numVal !== '' && (isNaN(number) || number < 1)) { alert('Bitte eine positive ganze Zahl eingeben.'); return; }
+        state.tips.push({ id: uid(), title, number, text: text || '', timestamp: new Date().toISOString() });
+        save();
+        $('#settings-new-tip-title').value = '';
+        $('#settings-new-tip-number').value = '';
+        $('#settings-new-tip-text').value = '';
+        renderSettingsTips();
+    });
 
     // ── Init ──
     load();

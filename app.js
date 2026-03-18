@@ -314,7 +314,7 @@
                 }).join('');
                 const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
                 const insightsHtml = (e.insights || []).length > 0
-                    ? `<div class="entry-insights"><strong>Erkenntnisse / Antworten:</strong><ul>${e.insights.map((i) => `<li>${escHtml(i)}</li>`).join('')}</ul></div>`
+                    ? `<div class="entry-insights"><strong><u>Erkenntnisse / Antworten:</u></strong><ul>${e.insights.map((i) => `<li><strong>${escHtml(i)}</strong></li>`).join('')}</ul></div>`
                     : '';
 
                 return `<div class="entry-card">
@@ -740,7 +740,7 @@
                 }).join('');
                 const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
                 const insightsHtml = (e.insights || []).length > 0
-                    ? `<div class="entry-insights"><strong>Erkenntnisse / Antworten:</strong><ul>${e.insights.map((i) => `<li>${escHtml(i)}</li>`).join('')}</ul></div>`
+                    ? `<div class="entry-insights"><strong><u>Erkenntnisse / Antworten:</u></strong><ul>${e.insights.map((i) => `<li><strong>${escHtml(i)}</strong></li>`).join('')}</ul></div>`
                     : '';
 
                 return `<div class="entry-card">
@@ -828,7 +828,7 @@
                 }).join('');
                 const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
                 const insightsHtml = (e.insights || []).length > 0
-                    ? `<div class="entry-insights"><strong>Erkenntnisse / Antworten:</strong><ul>${e.insights.map((i) => `<li>${escHtml(i)}</li>`).join('')}</ul></div>`
+                    ? `<div class="entry-insights"><strong><u>Erkenntnisse / Antworten:</u></strong><ul>${e.insights.map((i) => `<li><strong>${escHtml(i)}</strong></li>`).join('')}</ul></div>`
                     : '';
 
                 return `<div class="entry-card">

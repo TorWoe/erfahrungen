@@ -1231,8 +1231,8 @@
                     <span class="tip-title">${escHtml(tip.title)}</span>
                     ${numDisplay}
                 </div>
-                <div class="tip-text">${escHtml(tip.text)}</div>
                 ${tagsHtml ? `<div style="margin-top:4px">${tagsHtml}</div>` : ''}
+                <div class="tip-text">${escHtml(tip.text)}</div>
                 <div class="tip-actions">
                     <button onclick="app.editTip('${tip.id}')">Bearbeiten</button>
                     <button onclick="app.deleteTip('${tip.id}')">Löschen</button>

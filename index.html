@@ -146,6 +146,13 @@
         <section id="settings" class="view">
             <h2>Einstellungen</h2>
             <div class="settings-section">
+                <h3>Daten</h3>
+                <button id="btn-export-all" class="btn btn-secondary">Alle Daten exportieren (JSON)</button>
+                <button id="btn-import" class="btn btn-secondary">Daten importieren</button>
+                <input type="file" id="import-file" accept=".json" hidden>
+                <button id="btn-clear-data" class="btn btn-danger">Alle Daten löschen</button>
+            </div>
+            <div class="settings-section">
                 <h3>Bezugsperson / Bezugsobjekt</h3>
                 <div class="settings-list" id="project-list"></div>
                 <div class="settings-add">
@@ -181,13 +188,6 @@
                     <textarea id="settings-new-tip-text" placeholder="Text / Beschreibung des Tipps..." rows="2"></textarea>
                     <button id="btn-settings-add-tip" class="btn btn-primary">+</button>
                 </div>
-            </div>
-            <div class="settings-section">
-                <h3>Daten</h3>
-                <button id="btn-export-all" class="btn btn-secondary">Alle Daten exportieren (JSON)</button>
-                <button id="btn-import" class="btn btn-secondary">Daten importieren</button>
-                <input type="file" id="import-file" accept=".json" hidden>
-                <button id="btn-clear-data" class="btn btn-danger">Alle Daten löschen</button>
             </div>
         </section>
         <!-- Tipps View -->

@@ -712,56 +712,94 @@
         return { filtered, query, selectedProjects, selectedCategories, selectedTriggers };
     }
 
+    function getSearchFilteredTips(query) {
+        if (!query) return [];
+        let filtered = [...state.tips];
+        filtered = filtered.filter((tip) => {
+            const titleMatch = tip.title.toLowerCase().includes(query);
+            const tagMatch = (tip.tags || []).some((t) => t.toLowerCase().includes(query));
+            const textMatch = (tip.text || '').toLowerCase().includes(query);
+            return titleMatch || tagMatch || textMatch;
+        });
+        return sortTips(filtered);
+    }
+
+    function renderTipSearchResults(tips) {
+        if (tips.length === 0) return '';
+        return tips.map((tip) => {
+            const numDisplay = (tip.number !== null && tip.number !== undefined && tip.number !== '')
+                ? `<span class="tip-number">${escHtml(String(tip.number))}</span>` : '';
+            const tagsHtml = (tip.tags || []).map((t) => `<span class="tag">${escHtml(t)}</span>`).join('');
+            return `<div class="tip-card">
+                <div class="tip-header">
+                    <span class="tip-title">${escHtml(tip.title)}</span>
+                    ${numDisplay}
+                </div>
+                ${tagsHtml ? `<div style="margin-top:4px">${tagsHtml}</div>` : ''}
+                <div class="tip-text">${escHtml(tip.text)}</div>
+            </div>`;
+        }).join('');
+    }
+
     function renderSearch() {
         const { filtered, query, selectedProjects, selectedCategories, selectedTriggers } = getSearchFiltered();
 
         const countEl = $('#search-result-count');
         const list = $('#search-results');
+        const tipsList = $('#search-results-tips');
 
-        if (!query && selectedProjects.length === 0 && selectedCategories.length === 0 && selectedTriggers.length === 0) {
+        const hasFilters = query || selectedProjects.length > 0 || selectedCategories.length > 0 || selectedTriggers.length > 0;
+
+        if (!hasFilters) {
             countEl.textContent = '';
             list.innerHTML = '<div class="no-entries">Bitte Suchbegriff eingeben oder Filter wählen.</div>';
+            tipsList.innerHTML = '';
             return;
         }
 
-        countEl.textContent = `${filtered.length} Ergebnis${filtered.length !== 1 ? 'se' : ''} gefunden`;
+        // Tips are only searched by the text query
+        const filteredTips = getSearchFilteredTips(query);
+        const totalResults = filtered.length + filteredTips.length;
+
+        countEl.textContent = `${totalResults} Ergebnis${totalResults !== 1 ? 'se' : ''} gefunden`;
 
         if (filtered.length === 0) {
-            list.innerHTML = '<div class="no-entries">Keine Einträge gefunden.</div>';
-            return;
+            list.innerHTML = '';
+        } else {
+            list.innerHTML = filtered
+                .map((e) => {
+                    const proj = state.projects.find((p) => p.id === e.project);
+                    const cat = state.categories.find((c) => c.id === e.category);
+                    const trigIds = getEntryTriggers(e);
+                    const tagsHtml = (e.tags || []).map((t) => `<span class="tag">${escHtml(t)}</span>`).join('');
+                    const projBadge = proj ? `<span class="project-badge" style="background:${proj.color}22;color:${proj.color}">${escHtml(proj.name)}</span>` : '';
+                    const catBadge = cat ? `<span class="category-badge" style="background:${cat.color}22;color:${cat.color}">${escHtml(cat.name)}</span>` : '';
+                    const trigBadges = trigIds.map((tid) => {
+                        const trig = state.triggers.find((t) => t.id === tid);
+                        return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
+                    }).join('');
+                    const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
+                    const insightsHtml = (e.insights || []).length > 0
+                        ? `<div class="entry-insights"><strong><u>Erkenntnisse / Antworten:</u></strong><ul>${e.insights.map((i) => `<li><strong>${escHtml(i)}</strong></li>`).join('')}</ul></div>`
+                        : '';
+
+                    return `<div class="entry-card">
+                        <div class="entry-info">
+                            <div class="entry-task">${escHtml(e.task)}</div>
+                            <div class="entry-meta">
+                                <span>${e.date}</span>
+                                ${projBadge}${catBadge}${trigBadges}
+                            </div>
+                            <div style="margin-top:4px">${tagsHtml}</div>
+                            ${descHtml}
+                            ${insightsHtml}
+                        </div>
+                    </div>`;
+                })
+                .join('');
         }
 
-        list.innerHTML = filtered
-            .map((e) => {
-                const proj = state.projects.find((p) => p.id === e.project);
-                const cat = state.categories.find((c) => c.id === e.category);
-                const trigIds = getEntryTriggers(e);
-                const tagsHtml = (e.tags || []).map((t) => `<span class="tag">${escHtml(t)}</span>`).join('');
-                const projBadge = proj ? `<span class="project-badge" style="background:${proj.color}22;color:${proj.color}">${escHtml(proj.name)}</span>` : '';
-                const catBadge = cat ? `<span class="category-badge" style="background:${cat.color}22;color:${cat.color}">${escHtml(cat.name)}</span>` : '';
-                const trigBadges = trigIds.map((tid) => {
-                    const trig = state.triggers.find((t) => t.id === tid);
-                    return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
-                }).join('');
-                const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
-                const insightsHtml = (e.insights || []).length > 0
-                    ? `<div class="entry-insights"><strong><u>Erkenntnisse / Antworten:</u></strong><ul>${e.insights.map((i) => `<li><strong>${escHtml(i)}</strong></li>`).join('')}</ul></div>`
-                    : '';
-
-                return `<div class="entry-card">
-                    <div class="entry-info">
-                        <div class="entry-task">${escHtml(e.task)}</div>
-                        <div class="entry-meta">
-                            <span>${e.date}</span>
-                            ${projBadge}${catBadge}${trigBadges}
-                        </div>
-                        <div style="margin-top:4px">${tagsHtml}</div>
-                        ${descHtml}
-                        ${insightsHtml}
-                    </div>
-                </div>`;
-            })
-            .join('');
+        tipsList.innerHTML = renderTipSearchResults(filteredTips);
     }
 
     $('#btn-search-reset').addEventListener('click', () => {
@@ -808,48 +846,52 @@
             if (cmp !== 0) return cmp;
             return (b.timestamp || '').localeCompare(a.timestamp || '');
         });
+        const allTips = sortTips([...state.tips]);
 
         const countEl = $('#search-result-count');
         const list = $('#search-results');
+        const tipsList = $('#search-results-tips');
+        const totalCount = filtered.length + allTips.length;
 
-        countEl.textContent = `${filtered.length} Eintr${filtered.length !== 1 ? 'äge' : 'ag'} gesamt`;
+        countEl.textContent = `${totalCount} Eintr${totalCount !== 1 ? 'äge' : 'ag'} gesamt`;
 
         if (filtered.length === 0) {
-            list.innerHTML = '<div class="no-entries">Keine Einträge vorhanden.</div>';
-            return;
+            list.innerHTML = '';
+        } else {
+            list.innerHTML = filtered
+                .map((e) => {
+                    const proj = state.projects.find((p) => p.id === e.project);
+                    const cat = state.categories.find((c) => c.id === e.category);
+                    const trigIds = getEntryTriggers(e);
+                    const tagsHtml = (e.tags || []).map((t) => `<span class="tag">${escHtml(t)}</span>`).join('');
+                    const projBadge = proj ? `<span class="project-badge" style="background:${proj.color}22;color:${proj.color}">${escHtml(proj.name)}</span>` : '';
+                    const catBadge = cat ? `<span class="category-badge" style="background:${cat.color}22;color:${cat.color}">${escHtml(cat.name)}</span>` : '';
+                    const trigBadges = trigIds.map((tid) => {
+                        const trig = state.triggers.find((t) => t.id === tid);
+                        return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
+                    }).join('');
+                    const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
+                    const insightsHtml = (e.insights || []).length > 0
+                        ? `<div class="entry-insights"><strong><u>Erkenntnisse / Antworten:</u></strong><ul>${e.insights.map((i) => `<li><strong>${escHtml(i)}</strong></li>`).join('')}</ul></div>`
+                        : '';
+
+                    return `<div class="entry-card">
+                        <div class="entry-info">
+                            <div class="entry-task">${escHtml(e.task)}</div>
+                            <div class="entry-meta">
+                                <span>${e.date}</span>
+                                ${projBadge}${catBadge}${trigBadges}
+                            </div>
+                            <div style="margin-top:4px">${tagsHtml}</div>
+                            ${descHtml}
+                            ${insightsHtml}
+                        </div>
+                    </div>`;
+                })
+                .join('');
         }
 
-        list.innerHTML = filtered
-            .map((e) => {
-                const proj = state.projects.find((p) => p.id === e.project);
-                const cat = state.categories.find((c) => c.id === e.category);
-                const trigIds = getEntryTriggers(e);
-                const tagsHtml = (e.tags || []).map((t) => `<span class="tag">${escHtml(t)}</span>`).join('');
-                const projBadge = proj ? `<span class="project-badge" style="background:${proj.color}22;color:${proj.color}">${escHtml(proj.name)}</span>` : '';
-                const catBadge = cat ? `<span class="category-badge" style="background:${cat.color}22;color:${cat.color}">${escHtml(cat.name)}</span>` : '';
-                const trigBadges = trigIds.map((tid) => {
-                    const trig = state.triggers.find((t) => t.id === tid);
-                    return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
-                }).join('');
-                const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
-                const insightsHtml = (e.insights || []).length > 0
-                    ? `<div class="entry-insights"><strong><u>Erkenntnisse / Antworten:</u></strong><ul>${e.insights.map((i) => `<li><strong>${escHtml(i)}</strong></li>`).join('')}</ul></div>`
-                    : '';
-
-                return `<div class="entry-card">
-                    <div class="entry-info">
-                        <div class="entry-task">${escHtml(e.task)}</div>
-                        <div class="entry-meta">
-                            <span>${e.date}</span>
-                            ${projBadge}${catBadge}${trigBadges}
-                        </div>
-                        <div style="margin-top:4px">${tagsHtml}</div>
-                        ${descHtml}
-                        ${insightsHtml}
-                    </div>
-                </div>`;
-            })
-            .join('');
+        tipsList.innerHTML = renderTipSearchResults(allTips);
     });
 
     $('#btn-search').addEventListener('click', renderSearch);

@@ -1121,6 +1121,7 @@
                         <input type="text" class="edit-tip-title" value="${escHtml(tip.title)}" placeholder="Überschrift...">
                         <input type="number" class="edit-tip-number tip-number-input" value="${tip.number !== null && tip.number !== undefined && tip.number !== '' ? tip.number : ''}" placeholder="Nr." min="1" step="1">
                     </div>
+                    <input type="text" class="edit-tip-tags" value="${escHtml((tip.tags || []).join(', '))}" placeholder="Tags (kommagetrennt)">
                     <textarea class="edit-tip-text" rows="3" placeholder="Text...">${escHtml(tip.text)}</textarea>
                     <div class="tip-actions">
                         <button onclick="app.saveTip('${id}')">Speichern</button>
@@ -1142,6 +1143,7 @@
             tip.title = title;
             tip.text = text;
             tip.number = number;
+            tip.tags = el.querySelector('.edit-tip-tags').value.split(',').map((t) => t.trim()).filter(Boolean);
             save();
             renderTips();
         },
@@ -1163,6 +1165,7 @@
                 <div class="settings-tip-edit-form">
                     <input type="text" class="edit-tip-title" value="${escHtml(tip.title)}" placeholder="Überschrift...">
                     <input type="number" class="edit-tip-number tip-number-input" value="${tip.number !== null && tip.number !== undefined && tip.number !== '' ? tip.number : ''}" placeholder="Nr." min="1" step="1">
+                    <input type="text" class="edit-tip-tags" value="${escHtml((tip.tags || []).join(', '))}" placeholder="Tags (kommagetrennt)">
                     <textarea class="edit-tip-text" rows="2" placeholder="Text...">${escHtml(tip.text)}</textarea>
                     <div class="settings-item-actions">
                         <button class="btn-save" onclick="app.saveSettingsTip('${id}')">Speichern</button>
@@ -1184,6 +1187,7 @@
             tip.title = title;
             tip.text = text;
             tip.number = number;
+            tip.tags = el.querySelector('.edit-tip-tags').value.split(',').map((t) => t.trim()).filter(Boolean);
             save();
             renderSettingsTips();
         },
@@ -1221,12 +1225,14 @@
         list.innerHTML = sorted.map((tip) => {
             const numDisplay = (tip.number !== null && tip.number !== undefined && tip.number !== '')
                 ? `<span class="tip-number">${escHtml(String(tip.number))}</span>` : '';
+            const tagsHtml = (tip.tags || []).map((t) => `<span class="tag">${escHtml(t)}</span>`).join('');
             return `<div class="tip-card" id="tip-${tip.id}">
                 <div class="tip-header">
                     <span class="tip-title">${escHtml(tip.title)}</span>
                     ${numDisplay}
                 </div>
                 <div class="tip-text">${escHtml(tip.text)}</div>
+                ${tagsHtml ? `<div style="margin-top:4px">${tagsHtml}</div>` : ''}
                 <div class="tip-actions">
                     <button onclick="app.editTip('${tip.id}')">Bearbeiten</button>
                     <button onclick="app.deleteTip('${tip.id}')">Löschen</button>
@@ -1242,8 +1248,9 @@
         listEl.innerHTML = sorted.map((tip) => {
             const numDisplay = (tip.number !== null && tip.number !== undefined && tip.number !== '')
                 ? ` [${tip.number}]` : '';
+            const tagsHtml = (tip.tags || []).map((t) => `<span class="tag">${escHtml(t)}</span>`).join('');
             return `<div class="settings-item" id="settings-tip-${tip.id}">
-                <span class="name">${escHtml(tip.title)}${numDisplay}</span>
+                <span class="name">${escHtml(tip.title)}${numDisplay}${tagsHtml ? ' ' + tagsHtml : ''}</span>
                 <div class="settings-item-actions">
                     <button onclick="app.editSettingsTip('${tip.id}')">Bearbeiten</button>
                     <button onclick="app.deleteSettingsTip('${tip.id}')">Löschen</button>
@@ -1259,10 +1266,12 @@
         const numVal = $('#settings-new-tip-number').value.trim();
         const number = numVal !== '' ? parseInt(numVal, 10) : null;
         if (numVal !== '' && (isNaN(number) || number < 1)) { alert('Bitte eine positive ganze Zahl eingeben.'); return; }
-        state.tips.push({ id: uid(), title, number, text: text || '', timestamp: new Date().toISOString() });
+        const tags = $('#settings-new-tip-tags').value.split(',').map((t) => t.trim()).filter(Boolean);
+        state.tips.push({ id: uid(), title, number, text: text || '', tags, timestamp: new Date().toISOString() });
         save();
         $('#settings-new-tip-title').value = '';
         $('#settings-new-tip-number').value = '';
+        $('#settings-new-tip-tags').value = '';
         $('#settings-new-tip-text').value = '';
         renderSettingsTips();
     });

@@ -465,7 +465,9 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `tipps_export_${todayStr()}.csv`;
+        const now = new Date();
+        const timeStr = String(now.getHours()).padStart(2, '0') + '-' + String(now.getMinutes()).padStart(2, '0') + '-' + String(now.getSeconds()).padStart(2, '0');
+        a.download = `erfahrungen_tipps_${todayStr()}_${timeStr}.csv`;
         a.click();
         URL.revokeObjectURL(url);
     });

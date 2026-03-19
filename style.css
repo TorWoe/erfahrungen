@@ -972,6 +972,8 @@ textarea::placeholder {
     padding: 24px;
     width: 90%;
     max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modal h3 {

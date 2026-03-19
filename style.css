@@ -133,6 +133,40 @@ nav {
     min-height: 40px;
 }
 
+.insight-number-input {
+    width: 60px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 8px;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+    flex-shrink: 0;
+    align-self: center;
+    text-align: center;
+}
+
+.insight-number-input:focus {
+    border-color: var(--primary);
+}
+
+.insight-number-input::placeholder {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.insight-number {
+    background: var(--primary);
+    color: #fff;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
 .insight-row .btn-remove-insight {
     background: none;
     border: 1px solid var(--border);

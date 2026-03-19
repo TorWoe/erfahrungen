@@ -259,7 +259,7 @@
         const withNum = arr.filter((i) => i.sortOrder !== null && i.sortOrder !== undefined && i.sortOrder !== '');
         const withoutNum = arr.filter((i) => i.sortOrder === null || i.sortOrder === undefined || i.sortOrder === '');
         withNum.sort((a, b) => {
-            const numDiff = Number(a.sortOrder) - Number(b.sortOrder);
+            const numDiff = Number(b.sortOrder) - Number(a.sortOrder);
             if (numDiff !== 0) return numDiff;
             return a._idx - b._idx;
         });

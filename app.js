@@ -448,6 +448,28 @@
         URL.revokeObjectURL(url);
     });
 
+    // ── CSV Export Tipps ──
+    $('#btn-tips-export').addEventListener('click', () => {
+        const sorted = sortTips([...state.tips]);
+        if (sorted.length === 0) {
+            alert('Keine Tipps zum Exportieren vorhanden.');
+            return;
+        }
+        const headers = ['Nummer', 'Titel', 'Text', 'Tags'];
+        const rows = sorted.map((tip) => {
+            const num = (tip.number !== null && tip.number !== undefined && tip.number !== '') ? tip.number : '';
+            return [num, `"${(tip.title || '').replace(/"/g, '""')}"`, `"${(tip.text || '').replace(/"/g, '""')}"`, (tip.tags || []).join('; ')];
+        });
+        const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tipps_export_${todayStr()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
     // ── Reports ──
     let chartProjects = null;
     let chartCategories = null;

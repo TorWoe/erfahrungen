@@ -443,7 +443,9 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `erfahrungen_export_${todayStr()}.csv`;
+        const now = new Date();
+        const timeStr = String(now.getHours()).padStart(2, '0') + '-' + String(now.getMinutes()).padStart(2, '0') + '-' + String(now.getSeconds()).padStart(2, '0');
+        a.download = `erfahrungen_export_${todayStr()}_${timeStr}.csv`;
         a.click();
         URL.revokeObjectURL(url);
     });
@@ -907,7 +909,9 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `erfahrungen_suche_${todayStr()}.csv`;
+        const now = new Date();
+        const timeStr = String(now.getHours()).padStart(2, '0') + '-' + String(now.getMinutes()).padStart(2, '0') + '-' + String(now.getSeconds()).padStart(2, '0');
+        a.download = `erfahrungen_suche_${todayStr()}_${timeStr}.csv`;
         a.click();
         URL.revokeObjectURL(url);
     });
@@ -1038,7 +1042,9 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `erfahrungen_backup_${todayStr()}.json`;
+        const now = new Date();
+        const timeStr = String(now.getHours()).padStart(2, '0') + '-' + String(now.getMinutes()).padStart(2, '0') + '-' + String(now.getSeconds()).padStart(2, '0');
+        a.download = `erfahrungen_backup_${todayStr()}_${timeStr}.json`;
         a.click();
         URL.revokeObjectURL(url);
     });

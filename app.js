@@ -37,6 +37,14 @@
             state.triggers = [];
             state.tips = [];
         }
+        // Migrate old string[] insights to {text, sortOrder} objects
+        state.entries.forEach((entry) => {
+            if (Array.isArray(entry.insights)) {
+                entry.insights = entry.insights.map((i) =>
+                    typeof i === 'string' ? { text: i, sortOrder: null } : i
+                );
+            }
+        });
         if (state.projects.length === 0) {
             state.projects = [
                 { id: uid(), name: 'Familie', color: '#4a90d9' },
@@ -210,7 +218,7 @@
     }
 
     // ── Insights helpers ──
-    function addInsightRow(containerId, value) {
+    function addInsightRow(containerId, value, sortOrder) {
         const container = $('#' + containerId);
         const row = document.createElement('div');
         row.className = 'insight-row';
@@ -218,31 +226,67 @@
         ta.placeholder = 'Erkenntnis / Antwort ...';
         ta.rows = 2;
         ta.value = value || '';
+        const numInput = document.createElement('input');
+        numInput.type = 'number';
+        numInput.className = 'insight-number-input';
+        numInput.placeholder = 'Nr.';
+        numInput.min = '1';
+        numInput.step = '1';
+        numInput.value = (sortOrder !== null && sortOrder !== undefined && sortOrder !== '') ? sortOrder : '';
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'btn-remove-insight';
         btn.textContent = '\u00d7';
         btn.addEventListener('click', () => row.remove());
         row.appendChild(ta);
+        row.appendChild(numInput);
         row.appendChild(btn);
         container.prepend(row);
     }
 
     function getInsightValues(containerId) {
-        const rows = $('#' + containerId).querySelectorAll('.insight-row textarea');
-        return Array.from(rows).map((ta) => ta.value.trim()).filter(Boolean);
+        const rows = $('#' + containerId).querySelectorAll('.insight-row');
+        return Array.from(rows).map((row) => {
+            const text = row.querySelector('textarea').value.trim();
+            const numVal = row.querySelector('.insight-number-input').value.trim();
+            const sortOrder = numVal !== '' ? parseInt(numVal, 10) : null;
+            return { text, sortOrder };
+        }).filter((i) => i.text);
+    }
+
+    function sortInsights(insights) {
+        const arr = (insights || []).map((item, idx) => ({ ...item, _idx: idx }));
+        const withNum = arr.filter((i) => i.sortOrder !== null && i.sortOrder !== undefined && i.sortOrder !== '');
+        const withoutNum = arr.filter((i) => i.sortOrder === null || i.sortOrder === undefined || i.sortOrder === '');
+        withNum.sort((a, b) => {
+            const numDiff = Number(a.sortOrder) - Number(b.sortOrder);
+            if (numDiff !== 0) return numDiff;
+            return a._idx - b._idx;
+        });
+        return [...withNum, ...withoutNum];
     }
 
     function clearInsights(containerId) {
         $('#' + containerId).innerHTML = '';
     }
 
+    function renderInsightsHtml(insights) {
+        const sorted = sortInsights(insights);
+        if (sorted.length === 0) return '';
+        const listItems = sorted.map((i) => {
+            const numBadge = (i.sortOrder !== null && i.sortOrder !== undefined && i.sortOrder !== '')
+                ? `<span class="insight-number">${escHtml(String(i.sortOrder))}</span> ` : '';
+            return `<li><strong>${numBadge}${escHtml(i.text)}</strong></li>`;
+        }).join('');
+        return `<div class="entry-insights"><strong><u>Erkenntnisse / Antworten:</u></strong><ul>${listItems}</ul></div>`;
+    }
+
     // ── Manual Entry (Eingabe) ──
     $('#manual-date').value = todayStr();
-    addInsightRow('manual-insights', '');
+    addInsightRow('manual-insights', '', null);
 
     $('#btn-add-manual-insight').addEventListener('click', () => {
-        addInsightRow('manual-insights', '');
+        addInsightRow('manual-insights', '', null);
     });
 
     $('#btn-manual-add').addEventListener('click', () => {
@@ -275,7 +319,7 @@
         $('#manual-category').value = '';
         clearInlineTriggerSelect('manual-trigger-select', '-- meine Trigger wählen --');
         clearInsights('manual-insights');
-        addInsightRow('manual-insights', '');
+        addInsightRow('manual-insights', '', null);
         $('#manual-date').value = todayStr();
         alert('Erfahrung erfolgreich erfasst!');
     });
@@ -318,9 +362,7 @@
                     return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
                 }).join('');
                 const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
-                const insightsHtml = (e.insights || []).length > 0
-                    ? `<div class="entry-insights"><strong><u>Erkenntnisse / Antworten:</u></strong><ul>${e.insights.map((i) => `<li><strong>${escHtml(i)}</strong></li>`).join('')}</ul></div>`
-                    : '';
+                const insightsHtml = renderInsightsHtml(e.insights || []);
 
                 return `<div class="entry-card">
                     <div class="entry-info">
@@ -376,10 +418,11 @@
         if (filterCategory) filtered = filtered.filter((e) => e.category === filterCategory);
         if (filterTrigger) filtered = filtered.filter((e) => getEntryTriggers(e).includes(filterTrigger));
 
-        const maxInsights = filtered.reduce((max, e) => Math.max(max, (e.insights || []).length), 0);
+        const sortedInsightsPerEntry = filtered.map((e) => sortInsights(e.insights || []));
+        const maxInsights = sortedInsightsPerEntry.reduce((max, ins) => Math.max(max, ins.length), 0);
         const headers = ['Erfassungsdatum', 'Erfahrung', 'Bezugsperson/Bezugsobjekt', 'primärer Auslöser', 'Trigger', 'Tags', 'Beschreibung'];
         for (let i = 1; i <= maxInsights; i++) headers.push(`Erkenntnis ${i}`);
-        const rows = filtered.map((e) => {
+        const rows = filtered.map((e, idx) => {
             const proj = state.projects.find((p) => p.id === e.project);
             const cat = state.categories.find((c) => c.id === e.category);
             const trigNames = getEntryTriggers(e).map((tid) => {
@@ -387,8 +430,11 @@
                 return t ? t.name : '';
             }).filter(Boolean).join('; ');
             const row = [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
-            const ins = e.insights || [];
-            for (let i = 0; i < maxInsights; i++) row.push(`"${(ins[i] || '').replace(/"/g, '""')}"`);
+            const ins = sortedInsightsPerEntry[idx];
+            for (let i = 0; i < maxInsights; i++) {
+                const text = ins[i] ? ins[i].text : '';
+                row.push(`"${text.replace(/"/g, '""')}"`);
+            }
             return row;
         });
 
@@ -779,9 +825,7 @@
                         return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
                     }).join('');
                     const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
-                    const insightsHtml = (e.insights || []).length > 0
-                        ? `<div class="entry-insights"><strong><u>Erkenntnisse / Antworten:</u></strong><ul>${e.insights.map((i) => `<li><strong>${escHtml(i)}</strong></li>`).join('')}</ul></div>`
-                        : '';
+                    const insightsHtml = renderInsightsHtml(e.insights || []);
 
                     return `<div class="entry-card">
                         <div class="entry-info">
@@ -814,10 +858,11 @@
             return;
         }
 
-        const maxInsights = filtered.reduce((max, e) => Math.max(max, (e.insights || []).length), 0);
+        const sortedInsightsPerEntry = filtered.map((e) => sortInsights(e.insights || []));
+        const maxInsights = sortedInsightsPerEntry.reduce((max, ins) => Math.max(max, ins.length), 0);
         const headers = ['Erfassungsdatum', 'Erfahrung', 'Bezugsperson/Bezugsobjekt', 'primärer Auslöser', 'Trigger', 'Tags', 'Beschreibung'];
         for (let i = 1; i <= maxInsights; i++) headers.push(`Erkenntnis ${i}`);
-        const rows = filtered.map((e) => {
+        const rows = filtered.map((e, idx) => {
             const proj = state.projects.find((p) => p.id === e.project);
             const cat = state.categories.find((c) => c.id === e.category);
             const trigNames = getEntryTriggers(e).map((tid) => {
@@ -825,8 +870,11 @@
                 return t ? t.name : '';
             }).filter(Boolean).join('; ');
             const row = [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
-            const ins = e.insights || [];
-            for (let i = 0; i < maxInsights; i++) row.push(`"${(ins[i] || '').replace(/"/g, '""')}"`);
+            const ins = sortedInsightsPerEntry[idx];
+            for (let i = 0; i < maxInsights; i++) {
+                const text = ins[i] ? ins[i].text : '';
+                row.push(`"${text.replace(/"/g, '""')}"`);
+            }
             return row;
         });
 
@@ -871,9 +919,7 @@
                         return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
                     }).join('');
                     const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
-                    const insightsHtml = (e.insights || []).length > 0
-                        ? `<div class="entry-insights"><strong><u>Erkenntnisse / Antworten:</u></strong><ul>${e.insights.map((i) => `<li><strong>${escHtml(i)}</strong></li>`).join('')}</ul></div>`
-                        : '';
+                    const insightsHtml = renderInsightsHtml(e.insights || []);
 
                     return `<div class="entry-card">
                         <div class="entry-info">
@@ -1036,9 +1082,13 @@
         clearInsights('edit-insights');
         const ins = entry.insights || [];
         if (ins.length === 0) {
-            addInsightRow('edit-insights', '');
+            addInsightRow('edit-insights', '', null);
         } else {
-            ins.forEach((i) => addInsightRow('edit-insights', i));
+            ins.forEach((i) => {
+                const text = typeof i === 'string' ? i : i.text;
+                const sortOrder = typeof i === 'string' ? null : i.sortOrder;
+                addInsightRow('edit-insights', text, sortOrder);
+            });
         }
         $('#edit-date').value = entry.date;
 
@@ -1046,7 +1096,7 @@
     }
 
     $('#btn-add-edit-insight').addEventListener('click', () => {
-        addInsightRow('edit-insights', '');
+        addInsightRow('edit-insights', '', null);
     });
 
     $('#edit-save').addEventListener('click', () => {

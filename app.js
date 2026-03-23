@@ -877,6 +877,11 @@
         location.reload();
     });
 
+    $('#btn-eingabe-reset').addEventListener('click', () => {
+        location.hash = 'tracker';
+        location.reload();
+    });
+
     $('#btn-search-export').addEventListener('click', () => {
         const { filtered } = getSearchFiltered();
         if (filtered.length === 0) {

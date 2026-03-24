@@ -1372,11 +1372,18 @@
 
     function renderTips() {
         const sorted = sortTips([...state.tips]);
+        const toc = $('#tips-toc');
         const list = $('#tips-list');
         if (sorted.length === 0) {
+            toc.innerHTML = '';
             list.innerHTML = '<div class="no-entries">Keine Tipps vorhanden.</div>';
             return;
         }
+        toc.innerHTML = '<ul class="tips-toc-list">' + sorted.map((tip) => {
+            const numPrefix = (tip.number !== null && tip.number !== undefined && tip.number !== '')
+                ? `<span class="tip-toc-number">${escHtml(String(tip.number))}.</span> ` : '';
+            return `<li><a href="#tip-${tip.id}" class="tip-toc-link">${numPrefix}${escHtml(tip.title)}</a></li>`;
+        }).join('') + '</ul>';
         list.innerHTML = sorted.map((tip) => {
             const numDisplay = (tip.number !== null && tip.number !== undefined && tip.number !== '')
                 ? `<span class="tip-number">${escHtml(String(tip.number))}</span>` : '';

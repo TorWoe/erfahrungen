@@ -706,6 +706,48 @@
         renderReports();
     });
 
+    // Week arrows
+    $('#report-week-prev').addEventListener('click', () => {
+        state.reportPeriod = 'week';
+        state.reportOffset--;
+        updateReportTabs();
+        renderReports();
+    });
+    $('#report-week-next').addEventListener('click', () => {
+        state.reportPeriod = 'week';
+        state.reportOffset++;
+        updateReportTabs();
+        renderReports();
+    });
+
+    // Month arrows
+    $('#report-month-prev').addEventListener('click', () => {
+        state.reportPeriod = 'month';
+        state.reportOffset--;
+        updateReportTabs();
+        renderReports();
+    });
+    $('#report-month-next').addEventListener('click', () => {
+        state.reportPeriod = 'month';
+        state.reportOffset++;
+        updateReportTabs();
+        renderReports();
+    });
+
+    // Year arrows
+    $('#report-year-prev').addEventListener('click', () => {
+        state.reportPeriod = 'year';
+        state.reportOffset--;
+        updateReportTabs();
+        renderReports();
+    });
+    $('#report-year-next').addEventListener('click', () => {
+        state.reportPeriod = 'year';
+        state.reportOffset++;
+        updateReportTabs();
+        renderReports();
+    });
+
     function localDateStr(d) {
         return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     }

@@ -93,6 +93,14 @@
                     tags: [],
                     timestamp: new Date().toISOString(),
                 },
+                {
+                    id: uid(),
+                    title: "Wie werden Erkenntnisse / Antworten in der Web-App eingegeben",
+                    number: 4,
+                    text: "Deine Erfahrungen festzuhalten ist wichtig – aber die eigentliche Kraft steckt in den Erkenntnissen und Antworten, die Du daraus gewinnst. Sie helfen Dir, Deine positive Stärke aufzubauen und zu einem festen Teil von Dir zu machen.\n\n*) Wo kannst Du Erkenntnisse / Antworten eingeben?\nDafür gibt es zwei Wege:\n1. Im Bereich „Eingabe\" – direkt beim Erstellen einer neuen Erfahrung\n2. Im Bereich „Einträge\" – indem Du bei einer bestehenden Erfahrung auf „Bearbeiten\" klickst\n\n*) So funktioniert die Eingabe\nGib in das Textfeld für Erkenntnisse / Antworten immer nur eine einzelne Erkenntnis oder Antwort ein!\n\nZu den meisten Erfahrungen wirst Du mit der Zeit mehrere Erkenntnisse sammeln – und genau dafür gibt es den „+\" Button unter dem Eingabefeld. Mit einem Klick darauf fügst Du ein neues Feld für eine weitere Erkenntnis oder Antwort hinzu.\n\n*) Die Reihenfolge selbst bestimmen\nNeben jedem Eingabefeld findest Du ein kleines Feld \"Nr.\" – damit kannst Du Deine Erkenntnisse in eine für Dich passende Reihenfolge bringen, z. B. um den Weg Deiner persönlichen Entwicklung abzubilden.\n\nDie Eingabe einer Nummer ist aber nicht erforderlich. Ohne Nummerierung werden Deine Erkenntnisse einfach in der Reihenfolge angezeigt, in der Du sie eingegeben hast.\n\n\n>> Der vielleicht wichtigste Tipp\nNimm Dir von Zeit zu Zeit in einer ruhigen Minute Deine Erfahrungen vor und überlege: Was ist seitdem passiert? Wie blickst Du heute auf Deine Situation und Deine Gefühle zu dieser Erfahrung?\n\nFragen, die Dir dabei helfen können:\n- „Ist es am Ende wirklich so schlimm gekommen, wie ich anfangs dachte?\"\n- „Was ist – im Nachhinein betrachtet – das Positive daran?\"\n\nDieses gelegentliche Reflektieren führt ganz natürlich zu neuen Erkenntnissen und Antworten – und genau daraus wächst Deine innere Stärke.\n\n💡 \"Ja, dauerhafte positive Stärke aufzubauen erfordert ein bisschen Arbeit – aber eine bessere Arbeit kann es kaum geben.\"",
+                    tags: [],
+                    timestamp: new Date().toISOString(),
+                },
             ];
         }
         state.projects.sort((a, b) => a.name.localeCompare(b.name, 'de'));

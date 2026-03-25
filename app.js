@@ -47,25 +47,23 @@
         });
         if (state.projects.length === 0) {
             state.projects = [
-                { id: uid(), name: 'Familie', color: '#4a90d9' },
-                { id: uid(), name: 'Freunde', color: '#27ae60' },
-                { id: uid(), name: 'Arbeit', color: '#e67e22' },
+                { id: uid(), name: 'Spinnen', color: '#4a90d9' },
+                { id: uid(), name: 'Hohe Bauwerke', color: '#27ae60' },
+                { id: uid(), name: 'Menschenmassen', color: '#e67e22' },
+                { id: uid(), name: 'Heilung', color: '#1abc9c' },
             ];
         }
         if (state.categories.length === 0) {
             state.categories = [
-                { id: uid(), name: 'Gespräch', color: '#9b59b6' },
-                { id: uid(), name: 'Erlebnis', color: '#e74c3c' },
-                { id: uid(), name: 'Begegnung', color: '#1abc9c' },
-                { id: uid(), name: 'Sonstiges', color: '#95a5a6' },
+                { id: uid(), name: 'Angst', color: '#9b59b6' },
+                { id: uid(), name: 'Höhenangst', color: '#e74c3c' },
+                { id: uid(), name: 'Platzangst', color: '#1abc9c' },
+                { id: uid(), name: 'Panik', color: '#e67e22' },
+                { id: uid(), name: 'Frustration', color: '#95a5a6' },
             ];
         }
         if (state.triggers.length === 0) {
-            state.triggers = [
-                { id: uid(), name: 'Stress', color: '#e74c3c' },
-                { id: uid(), name: 'Freude', color: '#27ae60' },
-                { id: uid(), name: 'Angst', color: '#8e44ad' },
-            ];
+            state.triggers = [];
         }
         if (state.tips.length === 0) {
             state.tips = [

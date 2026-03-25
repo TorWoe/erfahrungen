@@ -58,10 +58,26 @@
         <section id="entries" class="view">
             <div class="entries-header">
                 <h2>Einträge</h2>
-                <div class="entries-filters">
+                <div class="entries-filters-row1">
                     <button id="filter-date-prev" class="btn btn-small">&larr;</button>
                     <input type="date" id="filter-date">
                     <button id="filter-date-next" class="btn btn-small">&rarr;</button>
+
+                    <span class="period-separator"></span>
+
+                    <button id="filter-week-prev" class="btn btn-small">&larr;</button>
+                    <button id="btn-filter-week" class="btn btn-period">Woche</button>
+                    <button id="filter-week-next" class="btn btn-small">&rarr;</button>
+
+                    <button id="filter-month-prev" class="btn btn-small">&larr;</button>
+                    <button id="btn-filter-month" class="btn btn-period">Monat</button>
+                    <button id="filter-month-next" class="btn btn-small">&rarr;</button>
+
+                    <button id="filter-year-prev" class="btn btn-small">&larr;</button>
+                    <button id="btn-filter-year" class="btn btn-period">Jahr</button>
+                    <button id="filter-year-next" class="btn btn-small">&rarr;</button>
+                </div>
+                <div class="entries-filters-row2">
                     <select id="filter-project">
                         <option value="">Alle Bezugsperson / Bezugsobjekt</option>
                     </select>

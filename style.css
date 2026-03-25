@@ -328,23 +328,57 @@ textarea::placeholder {
     margin-bottom: 12px;
 }
 
-.entries-filters {
+.entries-filters-row1 {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.entries-filters-row1 input[type="date"] {
+    flex: 0 1 auto;
+    min-width: 140px;
+    position: relative;
+    z-index: 1;
+}
+
+.period-separator {
+    width: 12px;
+}
+
+.btn-period {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    transition: background 0.15s, color 0.15s;
+}
+
+.btn-period:hover {
+    background: var(--bg-hover);
+}
+
+.btn-period.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+.entries-filters-row2 {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
     align-items: center;
 }
 
-.entries-filters select {
+.entries-filters-row2 select {
     flex: 1;
     min-width: 140px;
-}
-
-.entries-filters input[type="date"] {
-    flex: 0 1 auto;
-    min-width: 140px;
-    position: relative;
-    z-index: 1;
 }
 
 .entries-list {
@@ -1048,7 +1082,11 @@ textarea::placeholder {
         padding: 12px;
     }
 
-    .entries-filters {
+    .entries-filters-row1 {
+        flex-direction: column;
+    }
+
+    .entries-filters-row2 {
         flex-direction: column;
     }
 

@@ -361,14 +361,57 @@
     });
 
     // ── Entries View ──
+    // Period filter state: { mode: 'day'|'week'|'month'|'year', ref: Date }
+    const periodFilter = { mode: 'day', ref: new Date() };
+
+    function fmtDate(d) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function getDateRange() {
+        const ref = periodFilter.ref;
+        if (periodFilter.mode === 'day') {
+            const ds = $('#filter-date').value || fmtDate(ref);
+            return { start: ds, end: ds };
+        }
+        if (periodFilter.mode === 'week') {
+            const d = new Date(ref);
+            const day = d.getDay();
+            const diffToMon = (day === 0 ? -6 : 1 - day);
+            const mon = new Date(d);
+            mon.setDate(d.getDate() + diffToMon);
+            const sun = new Date(mon);
+            sun.setDate(mon.getDate() + 6);
+            return { start: fmtDate(mon), end: fmtDate(sun) };
+        }
+        if (periodFilter.mode === 'month') {
+            const first = new Date(ref.getFullYear(), ref.getMonth(), 1);
+            const last = new Date(ref.getFullYear(), ref.getMonth() + 1, 0);
+            return { start: fmtDate(first), end: fmtDate(last) };
+        }
+        if (periodFilter.mode === 'year') {
+            return { start: ref.getFullYear() + '-01-01', end: ref.getFullYear() + '-12-31' };
+        }
+        return { start: '', end: '' };
+    }
+
+    function updatePeriodButtons() {
+        ['week', 'month', 'year'].forEach((m) => {
+            const btn = $(`#btn-filter-${m}`);
+            btn.classList.toggle('active', periodFilter.mode === m);
+        });
+    }
+
     function renderEntries() {
-        const filterDate = $('#filter-date').value;
         const filterProject = $('#filter-project').value;
         const filterCategory = $('#filter-category').value;
         const filterTrigger = $('#filter-trigger').value;
 
+        const range = getDateRange();
         let filtered = [...state.entries];
-        if (filterDate) filtered = filtered.filter((e) => e.date === filterDate);
+        if (range.start && range.end) {
+            filtered = filtered.filter((e) => e.date >= range.start && e.date <= range.end);
+        }
         if (filterProject) filtered = filtered.filter((e) => e.project === filterProject);
         if (filterCategory) filtered = filtered.filter((e) => e.category === filterCategory);
         if (filterTrigger) filtered = filtered.filter((e) => getEntryTriggers(e).includes(filterTrigger));
@@ -420,7 +463,12 @@
             .join('');
     }
 
-    $('#filter-date').addEventListener('change', renderEntries);
+    $('#filter-date').addEventListener('change', () => {
+        periodFilter.mode = 'day';
+        periodFilter.ref = new Date($('#filter-date').value + 'T00:00:00');
+        updatePeriodButtons();
+        renderEntries();
+    });
     $('#filter-project').addEventListener('change', renderEntries);
     $('#filter-category').addEventListener('change', renderEntries);
     $('#filter-trigger').addEventListener('change', renderEntries);
@@ -429,7 +477,10 @@
         const el = $('#filter-date');
         const d = el.value ? new Date(el.value + 'T00:00:00') : new Date();
         d.setDate(d.getDate() - 1);
-        el.value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        el.value = fmtDate(d);
+        periodFilter.mode = 'day';
+        periodFilter.ref = d;
+        updatePeriodButtons();
         renderEntries();
     });
 
@@ -437,19 +488,84 @@
         const el = $('#filter-date');
         const d = el.value ? new Date(el.value + 'T00:00:00') : new Date();
         d.setDate(d.getDate() + 1);
-        el.value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        el.value = fmtDate(d);
+        periodFilter.mode = 'day';
+        periodFilter.ref = d;
+        updatePeriodButtons();
+        renderEntries();
+    });
+
+    // Week
+    $('#btn-filter-week').addEventListener('click', () => {
+        periodFilter.mode = periodFilter.mode === 'week' ? 'day' : 'week';
+        periodFilter.ref = new Date();
+        updatePeriodButtons();
+        renderEntries();
+    });
+    $('#filter-week-prev').addEventListener('click', () => {
+        periodFilter.mode = 'week';
+        periodFilter.ref.setDate(periodFilter.ref.getDate() - 7);
+        updatePeriodButtons();
+        renderEntries();
+    });
+    $('#filter-week-next').addEventListener('click', () => {
+        periodFilter.mode = 'week';
+        periodFilter.ref.setDate(periodFilter.ref.getDate() + 7);
+        updatePeriodButtons();
+        renderEntries();
+    });
+
+    // Month
+    $('#btn-filter-month').addEventListener('click', () => {
+        periodFilter.mode = periodFilter.mode === 'month' ? 'day' : 'month';
+        periodFilter.ref = new Date();
+        updatePeriodButtons();
+        renderEntries();
+    });
+    $('#filter-month-prev').addEventListener('click', () => {
+        periodFilter.mode = 'month';
+        periodFilter.ref.setMonth(periodFilter.ref.getMonth() - 1);
+        updatePeriodButtons();
+        renderEntries();
+    });
+    $('#filter-month-next').addEventListener('click', () => {
+        periodFilter.mode = 'month';
+        periodFilter.ref.setMonth(periodFilter.ref.getMonth() + 1);
+        updatePeriodButtons();
+        renderEntries();
+    });
+
+    // Year
+    $('#btn-filter-year').addEventListener('click', () => {
+        periodFilter.mode = periodFilter.mode === 'year' ? 'day' : 'year';
+        periodFilter.ref = new Date();
+        updatePeriodButtons();
+        renderEntries();
+    });
+    $('#filter-year-prev').addEventListener('click', () => {
+        periodFilter.mode = 'year';
+        periodFilter.ref.setFullYear(periodFilter.ref.getFullYear() - 1);
+        updatePeriodButtons();
+        renderEntries();
+    });
+    $('#filter-year-next').addEventListener('click', () => {
+        periodFilter.mode = 'year';
+        periodFilter.ref.setFullYear(periodFilter.ref.getFullYear() + 1);
+        updatePeriodButtons();
         renderEntries();
     });
 
     // ── CSV Export ──
     $('#btn-export').addEventListener('click', () => {
-        const filterDate = $('#filter-date').value;
         const filterProject = $('#filter-project').value;
         const filterCategory = $('#filter-category').value;
         const filterTrigger = $('#filter-trigger').value;
 
+        const range = getDateRange();
         let filtered = [...state.entries];
-        if (filterDate) filtered = filtered.filter((e) => e.date === filterDate);
+        if (range.start && range.end) {
+            filtered = filtered.filter((e) => e.date >= range.start && e.date <= range.end);
+        }
         if (filterProject) filtered = filtered.filter((e) => e.project === filterProject);
         if (filterCategory) filtered = filtered.filter((e) => e.category === filterCategory);
         if (filterTrigger) filtered = filtered.filter((e) => getEntryTriggers(e).includes(filterTrigger));

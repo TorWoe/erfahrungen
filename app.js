@@ -629,18 +629,26 @@
     let chartCategories = null;
     let chartTriggers = null;
 
-    function updateReportNav() {
-        const isCustom = state.reportPeriod === 'custom';
-        $('.report-nav').style.display = isCustom ? 'none' : 'flex';
+    // Set initial report date to today
+    $('#report-date').value = todayStr();
+
+    function updateReportTabs() {
+        $$('.report-tab').forEach((t) => {
+            t.classList.toggle('active', t.dataset.period === state.reportPeriod);
+        });
     }
 
     $$('.report-tab').forEach((tab) => {
         tab.addEventListener('click', () => {
-            $$('.report-tab').forEach((t) => t.classList.remove('active'));
-            tab.classList.add('active');
-            state.reportPeriod = tab.dataset.period;
-            state.reportOffset = 0;
-            updateReportNav();
+            if (state.reportPeriod === tab.dataset.period) {
+                // Toggle off: go back to day mode
+                state.reportPeriod = 'day';
+                state.reportOffset = 0;
+            } else {
+                state.reportPeriod = tab.dataset.period;
+                state.reportOffset = 0;
+            }
+            updateReportTabs();
             renderReports();
         });
     });
@@ -656,21 +664,45 @@
             alert('Startdatum muss vor dem Enddatum liegen.');
             return;
         }
-        $$('.report-tab').forEach((t) => t.classList.remove('active'));
         state.reportPeriod = 'custom';
         state.reportCustomStart = startVal;
         state.reportCustomEnd = endVal;
-        updateReportNav();
+        updateReportTabs();
+        renderReports();
+    });
+
+    $('#report-date').addEventListener('change', () => {
+        state.reportPeriod = 'day';
+        state.reportOffset = 0;
+        updateReportTabs();
         renderReports();
     });
 
     $('#report-prev').addEventListener('click', () => {
-        state.reportOffset--;
+        if (state.reportPeriod === 'day' || state.reportPeriod === 'custom') {
+            const el = $('#report-date');
+            const d = el.value ? new Date(el.value + 'T00:00:00') : new Date();
+            d.setDate(d.getDate() - 1);
+            el.value = fmtDate(d);
+            state.reportPeriod = 'day';
+            updateReportTabs();
+        } else {
+            state.reportOffset--;
+        }
         renderReports();
     });
 
     $('#report-next').addEventListener('click', () => {
-        state.reportOffset++;
+        if (state.reportPeriod === 'day' || state.reportPeriod === 'custom') {
+            const el = $('#report-date');
+            const d = el.value ? new Date(el.value + 'T00:00:00') : new Date();
+            d.setDate(d.getDate() + 1);
+            el.value = fmtDate(d);
+            state.reportPeriod = 'day';
+            updateReportTabs();
+        } else {
+            state.reportOffset++;
+        }
         renderReports();
     });
 
@@ -687,11 +719,10 @@
         let start, end, label;
 
         if (state.reportPeriod === 'day') {
-            const d = new Date(now);
-            d.setDate(d.getDate() + state.reportOffset);
-            const ds = localDateStr(d);
-            start = ds;
-            end = ds;
+            const dateVal = $('#report-date').value || localDateStr(now);
+            start = dateVal;
+            end = dateVal;
+            const d = new Date(dateVal + 'T00:00:00');
             label = d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         } else if (state.reportPeriod === 'week') {
             const d = new Date(now);
@@ -730,8 +761,7 @@
     }
 
     function renderReports() {
-        const { start, end, label } = getReportRange();
-        $('#report-date-label').textContent = label;
+        const { start, end } = getReportRange();
 
         const entries = state.entries.filter((e) => e.date >= start && e.date <= end);
 

@@ -97,21 +97,19 @@
         <section id="reports" class="view">
             <div class="reports-header">
                 <h2>Berichte</h2>
-                <div class="report-controls">
-                    <button class="report-tab active" data-period="day">Tag</button>
-                    <button class="report-tab" data-period="week">Woche</button>
-                    <button class="report-tab" data-period="month">Monat</button>
-                    <button class="report-tab" data-period="year">Jahr</button>
-                </div>
-                <div class="report-custom-range">
+                <div class="report-row1">
+                    <button id="report-prev" class="btn btn-small">&larr;</button>
+                    <input type="date" id="report-date">
+                    <button id="report-next" class="btn btn-small">&rarr;</button>
+                    <span class="period-separator"></span>
                     <label>Von <input type="date" id="report-range-start"></label>
                     <label>Bis <input type="date" id="report-range-end"></label>
                     <button class="btn btn-primary btn-small" id="report-range-apply">Anwenden</button>
                 </div>
-                <div class="report-nav">
-                    <button id="report-prev" class="btn btn-small">&larr;</button>
-                    <span id="report-date-label"></span>
-                    <button id="report-next" class="btn btn-small">&rarr;</button>
+                <div class="report-row2">
+                    <button class="report-tab" data-period="week">Woche</button>
+                    <button class="report-tab" data-period="month">Monat</button>
+                    <button class="report-tab" data-period="year">Jahr</button>
                 </div>
             </div>
             <div class="report-summary" id="report-summary"></div>

@@ -479,7 +479,28 @@ textarea::placeholder {
     margin-bottom: 12px;
 }
 
-.report-controls {
+.report-row1 {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.report-row1 input[type="date"] {
+    flex: 0 1 auto;
+    min-width: 140px;
+}
+
+.report-row1 label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.report-row2 {
     display: flex;
     gap: 6px;
     margin-bottom: 12px;
@@ -504,34 +525,6 @@ textarea::placeholder {
     background: var(--primary);
     color: #fff;
     border-color: var(--primary);
-}
-
-.report-custom-range {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-bottom: 8px;
-}
-
-.report-custom-range label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-}
-
-.report-nav {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-#report-date-label {
-    font-size: 1rem;
-    min-width: 200px;
-    text-align: center;
 }
 
 .report-summary {

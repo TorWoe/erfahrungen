@@ -374,11 +374,19 @@ textarea::placeholder {
     gap: 10px;
     flex-wrap: wrap;
     align-items: center;
+    margin-bottom: 10px;
 }
 
 .entries-filters-row2 select {
     flex: 1;
     min-width: 140px;
+}
+
+.entries-filters-row3 {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 .entries-list {

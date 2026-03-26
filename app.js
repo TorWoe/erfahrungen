@@ -1660,5 +1660,12 @@
         $('[data-view="search"]').classList.add('active');
         $('#search').classList.add('active');
         initSearchMultiSelects();
+    } else if (location.hash === '#entries') {
+        location.hash = '';
+        $$('.nav-btn').forEach((b) => b.classList.remove('active'));
+        $$('.view').forEach((v) => v.classList.remove('active'));
+        $('[data-view="entries"]').classList.add('active');
+        $('#entries').classList.add('active');
+        renderEntries();
     }
 })();

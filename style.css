@@ -582,25 +582,28 @@ textarea::placeholder {
     margin-bottom: 12px;
 }
 
-.search-actions-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
+.search-row1 {
+    margin-bottom: 10px;
+}
+
+.search-row1 input[type="text"] {
     width: 100%;
-    margin-top: 8px;
+    min-width: 180px;
 }
 
-.search-filters {
+.search-row2 {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
     align-items: center;
+    margin-bottom: 10px;
 }
 
-.search-filters input[type="text"] {
-    flex: 1;
-    min-width: 180px;
+.search-row3 {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 .search-result-count {
@@ -1083,7 +1086,7 @@ textarea::placeholder {
         flex-direction: column;
     }
 
-    .search-filters {
+    .search-row2 {
         flex-direction: column;
     }
 

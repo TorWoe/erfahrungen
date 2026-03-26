@@ -559,6 +559,11 @@
         renderEntries();
     });
 
+    $('#btn-entries-reset').addEventListener('click', () => {
+        location.hash = 'entries';
+        location.reload();
+    });
+
     // ── CSV Export ──
     $('#btn-export').addEventListener('click', () => {
         const filterProject = $('#filter-project').value;

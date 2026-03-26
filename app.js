@@ -553,6 +553,12 @@
         renderEntries();
     });
 
+    $('#btn-entries-show-all').addEventListener('click', () => {
+        periodFilter.mode = 'all';
+        updatePeriodButtons();
+        renderEntries();
+    });
+
     // ── CSV Export ──
     $('#btn-export').addEventListener('click', () => {
         const filterProject = $('#filter-project').value;

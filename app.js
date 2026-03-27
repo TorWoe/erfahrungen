@@ -66,7 +66,16 @@
             state.triggers = [];
         }
         if (state.tips.length === 0) {
-            state.tips = [];
+            state.tips = [
+                {
+                    id: uid(),
+                    title: "Wof\u00fcr ist die 'Erfahrungen' Web-App",
+                    number: 1,
+                    text: ">> Worum geht es in diesem Tipp <<\nErfahre, wie die App Dir hilft, das Positive in Deinem Leben sichtbar zu machen und nicht zu vergessen. Und wie Du auch aus schwierigen Erfahrungen mit der Zeit positive Erkenntnisse gewinnen kannst.\n\n\nKennst Du das? \nIm Alltag passieren so viele gute Dinge \u2013 und doch vergessen wir sie viel zu schnell. Besonders in schwierigen oder negativen Momenten f\u00e4llt es uns schwer, das Positive zu sehen, das eigentlich schon da ist.\n\nGenau hier hilft Dir die \"Erfahrungen\" Web-App: Sie macht Dein Positives und Erreichtes sichtbar \u2013 damit es nicht in Vergessenheit ger\u00e4t.\n\nDenn es stimmt: Aus Erfahrungen kann man lernen und Kraft ziehen.\n\nDu kannst die App auf zwei Wege nutzen:\n1) Zum einen, um positive Erfahrungen festzuhalten \u2013 als Motivation und Best\u00e4rkung f\u00fcr Dich selbst.\n2) Zum anderen, um schwierige und negative Erfahrungen zu verarbeiten. Dabei geht es darum, mit etwas zeitlichem Abstand nach positiven Erkenntnissen / Antworten zu suchen. \nFragen, die Dir dabei z.B. helfen k\u00f6nnen, sind: \"Ist es am Ende wirklich so schlimm gekommen, wie ich anfangs dachte?\" oder \"Was ist \u2013 im Nachhinein betrachtet \u2013 das Positive daran?\"\n\n>> Was Dir die \"Erfahrungen App\" erm\u00f6glicht: <<\nDu baust Dir Schritt f\u00fcr Schritt einen pers\u00f6nlichen Schatz an Erkenntnissen und Antworten auf. \nUnd genau diesen Schatz kannst Du nutzen, um f\u00fcr Dich das Erreichte und Positive immer wieder zu reflektieren und so Kraft zu bekommen, auch durch neue Herausforderungen mit Zuversicht zu gehen \u2013 und zu einem guten Ergebnis zu kommen.\nDu lernst ganz automatisch Deine pers\u00f6nlichen Trigger f\u00fcr Schwieriges oder Negatives zu erkennen und diese gut und positiv f\u00fcr Dich zu nutzen. \n\n\ud83d\udca1 Besonderer Tipp\nSchaue Dir von Zeit zu Zeit immer mal wieder in einer ruhigen Situation Deine Erfahrungen mit den positiven Erkenntnissen / Antworten an. Dies hilft Dir sehr Deine positive Kraft zu entwickeln, diese zu behalten und zu einem Teil von Dir zu machen - der Dir in schwierigen und negativen Situationen besonders hilft. \nSehe es so: \"Dauerhafte positive St\u00e4rke erfordert ein bisschen Arbeit - aber eine bessere Arbeit kann es kaum geben.\"\n\n\n\u26a0\ufe0f Wichtiger Hinweis:\nBei starken, dauerhaften negativen Stimmungen, bei Hoffnungslosigkeit und Verzweiflung sowie negativen Gef\u00fchlen w\u00e4hle unbedingt die Hilfe eines Psychotherapeuten, Psychologen oder Arzt.",
+                    tags: [],
+                    timestamp: new Date().toISOString(),
+                },
+            ];
         }
         state.projects.sort((a, b) => a.name.localeCompare(b.name, 'de'));
         state.categories.sort((a, b) => a.name.localeCompare(b.name, 'de'));

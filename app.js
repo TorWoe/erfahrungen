@@ -99,6 +99,14 @@
                     tags: [],
                     timestamp: new Date().toISOString(),
                 },
+                {
+                    id: uid(),
+                    title: "Wof\u00fcr ist der Bereich 'Eingabe'",
+                    number: 5,
+                    text: ">> Worum geht es in diesem Tipp <<\nHier gibst Du Deine Erfahrungen ein \u2013 dies ist der Startpunkt f\u00fcr alles. Dieser Tipp zeigt Dir, welche weiteren Tipps Dir bei der Eingabe helfen.\n\n\nIm Bereich \"Eingabe\" gibst Du Deine Erfahrungen ein \u2013 hier beginnt also alles. \nWenn Du beim Eingeben bereits erste Erkenntnisse oder Antworten zu Deiner Erfahrung hast, kannst Du diese gleich mit erfassen.\n\nDamit Deine Eingaben von Anfang an gut gelingen, schau Dir bitte vorher diese drei Tipps an:\n1. \"Wie werden Erfahrungen in der Web-App eingegeben?\"\n2. \"Wie werden gute Eintr\u00e4ge zu Bezugsperson / Bezugsobjekt, prim\u00e4rer Ausl\u00f6ser und meine Trigger formuliert?\"\n3. \"Wie werden Erkenntnisse / Antworten in der Web-App eingegeben?\"\n\nDie drei Tipps sind leicht und schnell zu lesen \u2013 und Du wirst schnell sehen, dass die Eingabe ganz unkompliziert ist.",
+                    tags: [],
+                    timestamp: new Date().toISOString(),
+                },
             ];
         }
         state.projects.sort((a, b) => a.name.localeCompare(b.name, 'de'));

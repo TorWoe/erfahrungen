@@ -91,6 +91,14 @@
                     tags: [],
                     timestamp: new Date().toISOString(),
                 },
+                {
+                    id: uid(),
+                    title: "Wie werden Erkenntnisse / Antworten in der Web-App eingegeben",
+                    number: 4,
+                    text: ">> Worum geht es in diesem Tipp <<\nErfahre, wo und wie Du Erkenntnisse und Antworten zu Deinen Erfahrungen eingibst und wie Du sie in einer f\u00fcr Dich passenden Reihenfolge anordnen kannst. Denn in den Erkenntnissen steckt die eigentliche Kraft.\n\n\nDeine Erfahrungen festzuhalten ist wichtig \u2013 aber die eigentliche Kraft steckt in den Erkenntnissen und Antworten, die Du daraus gewinnst. Sie helfen Dir, Deine positive St\u00e4rke aufzubauen und zu einem festen Teil von Dir zu machen.\n\n*) Wo kannst Du Erkenntnisse / Antworten eingeben?\nDaf\u00fcr gibt es zwei Wege:\n1. Im Bereich \u201eEingabe\" \u2013 direkt beim Erstellen einer neuen Erfahrung\n2. Im Bereich \u201eEintr\u00e4ge\" \u2013 indem Du bei einer bestehenden Erfahrung auf \u201eBearbeiten\" klickst\n\n*) So funktioniert die Eingabe\nGib in das Textfeld f\u00fcr Erkenntnisse / Antworten immer nur eine einzelne Erkenntnis oder Antwort ein!\n\nZu den meisten Erfahrungen wirst Du mit der Zeit mehrere Erkenntnisse sammeln \u2013 und genau daf\u00fcr gibt es den \u201e+\" Button unter dem Eingabefeld. Mit einem Klick darauf f\u00fcgst Du ein neues Feld f\u00fcr eine weitere Erkenntnis oder Antwort hinzu.\n\n*) Die Reihenfolge selbst bestimmen\nNeben jedem Eingabefeld findest Du ein kleines Feld \"Nr.\" \u2013 damit kannst Du Deine Erkenntnisse in eine f\u00fcr Dich passende Reihenfolge bringen, z. B. um den Weg Deiner pers\u00f6nlichen Entwicklung abzubilden.\n\nDie Eingabe einer Nummer ist aber nicht erforderlich. Ohne Nummerierung werden Deine Erkenntnisse einfach in der Reihenfolge angezeigt, in der Du sie eingegeben hast.\n\n\n>> Der vielleicht wichtigste Tipp\nNimm Dir von Zeit zu Zeit in einer ruhigen Minute Deine Erfahrungen vor und \u00fcberlege: Was ist seitdem passiert? Wie blickst Du heute auf Deine Situation und Deine Gef\u00fchle zu dieser Erfahrung?\n\nFragen, die Dir dabei helfen k\u00f6nnen:\n- \u201eIst es am Ende wirklich so schlimm gekommen, wie ich anfangs dachte?\"\n- \u201eWas ist \u2013 im Nachhinein betrachtet \u2013 das Positive daran?\"\n\nDieses gelegentliche Reflektieren f\u00fchrt ganz nat\u00fcrlich zu neuen Erkenntnissen und Antworten \u2013 und genau daraus w\u00e4chst Deine innere St\u00e4rke.\n\n\ud83d\udca1 \"Ja, dauerhafte positive St\u00e4rke aufzubauen erfordert ein bisschen Arbeit \u2013 aber eine bessere Arbeit kann es kaum geben.\"",
+                    tags: [],
+                    timestamp: new Date().toISOString(),
+                },
             ];
         }
         state.projects.sort((a, b) => a.name.localeCompare(b.name, 'de'));

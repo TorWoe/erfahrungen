@@ -876,6 +876,21 @@ textarea::placeholder {
     gap: 10px;
 }
 
+.tips-intro {
+    margin: 10px 0 16px 0;
+    line-height: 1.5;
+}
+.tips-intro p {
+    margin: 0 0 8px 0;
+}
+.tips-intro ul {
+    margin: 4px 0 0 20px;
+    padding: 0;
+}
+.tips-intro li {
+    margin-bottom: 4px;
+}
+
 .tips-toc-list {
     list-style: none;
     padding: 0;

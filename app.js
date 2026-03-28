@@ -115,6 +115,14 @@
                     tags: [],
                     timestamp: new Date().toISOString(),
                 },
+                {
+                    id: uid(),
+                    title: "Wofür ist der Bereich 'Berichte'",
+                    number: 7,
+                    text: ">> Worum geht es in diesem Tipp <<\nVerschaffe Dir einen Überblick darüber, wann und wie aktiv Du mit Deinen Erfahrungen arbeitest. Erfahre, welche Zeiträume Du auswählen kannst und welche Informationen Dir die Berichte zeigen.\n\n\nDer Bereich \"Berichte\" gibt Dir ein bisschen einen Überblick darüber, wann und wie aktiv Du mit Deinen Erfahrungen arbeitest – eine hilfreiche Ergänzung im Alltag mit der App.\n\n*) Was siehst Du hier?\nAlles in diesem Bereich bezieht sich auf das Datum Deiner eingegebenen Erfahrungen. \n\nAuf einen Blick erkennst Du:\n- Wann Du Erfahrungen eingegeben hast – also zu welcher Zeit bzw. in welchem Zeitraum\n- Wie viele Erfahrungen Du in dem von Dir gewählten Zeitraum erfasst hast\n- Welche „Bezugspersonen / Bezugsobjekte\", „primären Auslöser\" und „Trigger\" in diesem Zeitraum betroffen sind\n\nSo bekommst Du ein gutes Gefühl dafür, wie aktiv Du Dich mit Deinen Erfahrungen auseinandersetzt.\n\n*) Den Zeitraum auswählen\nÜber die Auswahlbuttons kannst Du flexibel bestimmen, welchen Zeitraum Du Dir anschauen möchtest:\n- Tagesdatum – wähle einen bestimmten Tag aus und blättere mit den Pfeiltasten tageweise vor oder zurück\n- Von-Bis-Zeitraum – lege einen individuellen Zeitraum fest, der genau zu Deiner Fragestellung passt\n- Woche, Monat oder Jahr – zeige Dir die aktuelle Woche, den aktuellen Monat oder das aktuelle Jahr an und blättere mit den Pfeiltasten bequem weiter zurück oder vor\n\n💡 Zur Erinnerung: Das Erfassungsdatum Deiner Erfahrungen kannst Du auch nachträglich anpassen – mehr dazu findest Du im Tipp: \"Wie werden Erfahrungen in der Web-App eingegeben?\"",
+                    tags: [],
+                    timestamp: new Date().toISOString(),
+                },
             ];
         }
         state.projects.sort((a, b) => a.name.localeCompare(b.name, 'de'));

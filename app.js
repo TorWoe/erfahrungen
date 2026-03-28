@@ -107,6 +107,14 @@
                     tags: [],
                     timestamp: new Date().toISOString(),
                 },
+                {
+                    id: uid(),
+                    title: "Wofür ist der Bereich 'Einträge'",
+                    number: 6,
+                    text: ">> Worum geht es in diesem Tipp <<\nHier verwaltest und bearbeitest Du Deine vorhandenen Erfahrungen – von der Änderung über das Ergänzen von Erkenntnissen bis hin zum Löschen. Außerdem erfährst Du, wie Du Deine Erfahrungen nach Zeit oder Inhalt filtern und exportieren kannst.\n\n\nIm Bereich \"Einträge\" findest Du alle Deine eingegebenen Erfahrungen – hier kannst Du sie verwalten, bearbeiten und weiterentwickeln.\n\n*) Erfahrungen bearbeiten und löschen\nZu jeder Erfahrung stehen Dir zwei Buttons zur Verfügung:\n\n1. \"Bearbeiten\" – öffnet Deine Erfahrung zum Anpassen, z. B. um Erkenntnisse oder Antworten hinzuzufügen, die Beschreibung zu erweitern oder andere Eingaben zu ändern\n2. \"Löschen\" – entfernt die jeweilige Erfahrung\n\n➜ siehe hierzu auch den Tipp: \"Wie werden Erfahrungen in der Web-App eingegeben?\"\n\n*) Erfahrungen gezielt anzeigen lassen\nDamit Du Deine Erfahrungen schnell wiederfindest, stehen Dir zwei Anzeigemöglichkeiten zur Verfügung:\n1. Nach Zeit filtern:\nWähle ein bestimmtes Tagesdatum, eine Woche, einen Monat oder ein Jahr aus – mit den Pfeiltasten kannst Du bequem vor- und zurückblättern. Hier zählt das zu Deiner Erfahrung gespeicherte Datum.\n2. Nach Inhalt filtern:\nNutze die drei Auswahlbuttons zu \"Bezugspersonen / Bezugsobjekte\", \"primäre Auslöser\" oder \"meine Trigger\" und wähle einfach den passenden Eintrag aus. Dir werden dann alle zugehörigen Erfahrungen angezeigt.\n3. Alle Erfahrungen anzeigen:\nMit Klick auf den Button \"Alle anzeigen\" zeigst Du alle vorhandenen Erfahrungen an.\n\nFür eine neue Auswahl der Erfahrungen klicke einfach auf \"Reset\" und starte von neu.\n\n*) Erfahrungen exportieren\nMöchtest Du Deine angezeigten Erfahrungen auch außerhalb der App nutzen? \nMit einem Klick auf den Button \"CSV Export\" kannst Du sie exportieren und lokal auf Deinem Gerät speichern.",
+                    tags: [],
+                    timestamp: new Date().toISOString(),
+                },
             ];
         }
         state.projects.sort((a, b) => a.name.localeCompare(b.name, 'de'));

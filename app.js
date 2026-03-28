@@ -123,6 +123,14 @@
                     tags: [],
                     timestamp: new Date().toISOString(),
                 },
+                {
+                    id: uid(),
+                    title: "Wofür ist der Bereich 'Suche'",
+                    number: 8,
+                    text: ">> Worum geht es in diesem Tipp <<\nDer Bereich \"Suche\" hilft Dir, gezielt einzelne Erfahrungen zu finden und Dich auf das Wesentliche zu konzentrieren. Hier erfährst Du, welche Suchmöglichkeiten Dir zur Verfügung stehen – ideal, um regelmäßig mit Deinen Erfahrungen zu arbeiten.\n\n\n💡 \"Ja, dauerhafte positive Stärke aufzubauen erfordert ein bisschen Arbeit – aber eine bessere Arbeit kann es kaum geben.\"\nNimm Dir von Zeit zu Zeit in einer ruhigen Minute Deine Erfahrungen mit den positiven Erkenntnissen und Antworten vor. Das hilft Dir, Deine innere Stärke aufzubauen, sie zu bewahren und zu einem festen Teil von Dir zu machen – gerade dann, wenn es mal schwierig wird.\n\nDer Bereich \"Suche\" eignet sich dafür besonders gut.\n\n*) Gezielt suchen und sich auf das Wesentliche konzentrieren\nHier kannst Du Deine Erfahrungen eingrenzen, damit Du Dich ganz auf das konzentrieren kannst, was Dich gerade beschäftigt – ohne von weiteren Erfahrungen abgelenkt zu werden.\n\nFolgende Suchmöglichkeiten stehen Dir zur Verfügung:\n- Textsuche – suche nach bestimmten Worten oder einem von Dir eingegebenen Text\n- Inhaltliche Auswahl – lasse Dir Deine Erfahrungen zu einer oder mehreren \"Bezugspersonen / Bezugsobjekten\", \"primären Auslösern\" oder \"Triggern\" anzeigen\n- Alle Erfahrungen – zeige Dir auf Wunsch auch alle Deine Erfahrungen auf einmal an\n\nFür eine neue Suche klicke einfach auf \"Reset\" und starte von vorne.\n\n*) Dir fällt beim Lesen etwas auf?\nWenn Du beim Durchsehen Deiner Erfahrungen etwas ändern oder anpassen möchtest – oder Dir eine neue wichtige Erkenntnis oder Antwort einfällt – wechsle einfach in den Bereich \"Einträge\" und bearbeite dort die jeweilige Erfahrung. Mit Vorgabe des Tagesdatums zu der Erfahrung, die Du ändern oder erweitern möchtest, kommst Du direkt zu der richtigen und gewünschten Erfahrung.\n\nsiehe hierzu auch die Tipps:\n➜ \"Wie werden Erfahrungen in der Web-App eingegeben?\"\n➜ \"Wie werden Erkenntnisse / Antworten in der Web-App eingegeben?\"\n➜ \"Wofür ist der Bereich Einträge?\"",
+                    tags: [],
+                    timestamp: new Date().toISOString(),
+                },
             ];
         }
         state.projects.sort((a, b) => a.name.localeCompare(b.name, 'de'));

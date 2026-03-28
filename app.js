@@ -139,6 +139,14 @@
                     tags: [],
                     timestamp: new Date().toISOString(),
                 },
+                {
+                    id: uid(),
+                    title: "Wofür ist der Bereich 'Tipps'",
+                    number: 10,
+                    text: ">> Worum geht es in diesem Tipp <<\nHier findest Du alle Tipps an einem Ort – sowohl die Tipps der App als auch Deine eigenen. Erfahre, wie Du schnell navigierst, die Reihenfolge anpasst und Tipps exportieren kannst.\n\n\nHier hast Du alles Wichtige an einem Ort – und musst Dir nicht alles merken. Neben den Tipps der 'Erfahrungen Web-App' findest Du hier auch Deine eigenen, von Dir eingegebenen Tipps und Merksätze.\n\n➜ Wie Du eigene Tipps eingeben kannst, erfährst Du im Tipp: \"Wofür ist der Bereich Einstellungen?\" unter Punkt 3) Tipps.\n\n>> Alle Tipps einmal durchlesen – es lohnt sich\n💡 Nimm Dir ruhig einmal die Zeit und lies alle Tipps durch – nicht alles auf einmal, sondern in Deinem eigenen Tempo. Die Tipps sind persönlich formuliert und leicht verständlich. Sie helfen Dir dabei, das Beste aus Deinen Erfahrungen herauszuholen.\n\n>> Schneller Überblick und Navigation\nZu Beginn der Seite findest Du die Überschriften aller vorhandenen Tipps. \nMit einem Klick auf eine Überschrift springst Du direkt zum gewünschten Tipp.\n\n💡 Die Reihenfolge der Überschriften entspricht der Reihenfolge der Tipps auf der Seite. \nÜber das Nummernfeld kannst Du diese Reihenfolge nach Deinen Wünschen anpassen – die kleinste Nummer steht dabei immer oben. Tipps mit einer Nummer stehen immer vor Tipps ohne Nummer.\n\n>> Tipps bearbeiten, löschen und exportieren\nDu kannst hier auch vorhandene Tipps bearbeiten oder löschen.\n\n💡 Ein kleiner Rat: Bevor Du einen Tipp löschst, sortiere ihn erst einmal mit einer hohen Nummer ganz ans Ende. Oft greift man später doch noch gerne auf den einen oder anderen Tipp zurück.\n\n>> Möchtest Du die Tipps auch außerhalb der App nutzen? \nMit einem Klick auf den Button \"CSV Export\" kannst Du sie exportieren und lokal auf Deinem Gerät speichern.",
+                    tags: [],
+                    timestamp: new Date().toISOString(),
+                },
             ];
         }
         state.projects.sort((a, b) => a.name.localeCompare(b.name, 'de'));

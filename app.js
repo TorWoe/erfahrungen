@@ -471,8 +471,6 @@
         if (filterTrigger) filtered = filtered.filter((e) => getEntryTriggers(e).includes(filterTrigger));
 
         filtered.sort((a, b) => {
-            const cmp = b.date.localeCompare(a.date);
-            if (cmp !== 0) return cmp;
             return (b.timestamp || '').localeCompare(a.timestamp || '');
         });
 
@@ -1065,8 +1063,6 @@
         }
 
         filtered.sort((a, b) => {
-            const cmp = b.date.localeCompare(a.date);
-            if (cmp !== 0) return cmp;
             return (b.timestamp || '').localeCompare(a.timestamp || '');
         });
 
@@ -1212,8 +1208,6 @@
 
     $('#btn-show-all').addEventListener('click', () => {
         const filtered = [...state.entries].sort((a, b) => {
-            const cmp = b.date.localeCompare(a.date);
-            if (cmp !== 0) return cmp;
             return (b.timestamp || '').localeCompare(a.timestamp || '');
         });
         const allTips = sortTips([...state.tips]);

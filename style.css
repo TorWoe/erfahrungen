@@ -326,6 +326,15 @@ textarea::placeholder {
     border-radius: var(--radius);
     padding: 20px;
     margin: 20px auto 20px;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.filter-card select,
+.filter-card input,
+.filter-card .multi-select {
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .filter-card h2 {
@@ -508,6 +517,7 @@ textarea::placeholder {
 .report-row2 {
     display: flex;
     gap: 6px;
+    flex-wrap: wrap;
     margin-bottom: 12px;
 }
 
@@ -583,6 +593,7 @@ textarea::placeholder {
 .search-row1 {
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
     align-items: center;
     margin-bottom: 10px;
 }
@@ -1102,8 +1113,43 @@ textarea::placeholder {
         flex-direction: column;
     }
 
+    .entries-filters-row2 select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .entries-filters-row3 {
+        flex-direction: column;
+    }
+
+    .search-row1 {
+        flex-direction: column;
+    }
+
+    .search-row1 input[type="text"] {
+        width: 100%;
+        flex: 1 1 100%;
+    }
+
     .search-row2 {
         flex-direction: column;
+    }
+
+    .search-row2 .multi-select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .search-row3 {
+        flex-direction: column;
+    }
+
+    .report-row1 {
+        flex-direction: column;
+    }
+
+    .report-row2 {
+        flex-wrap: wrap;
     }
 
     .entry-card {

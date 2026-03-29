@@ -1723,5 +1723,7 @@
         $('[data-view="entries"]').classList.add('active');
         $('#entries').classList.add('active');
         renderEntries();
+    } else {
+        initSearchMultiSelects();
     }
 })();

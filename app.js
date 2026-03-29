@@ -1716,6 +1716,12 @@
         $('[data-view="search"]').classList.add('active');
         $('#search').classList.add('active');
         initSearchMultiSelects();
+    } else if (location.hash === '#tracker') {
+        location.hash = '';
+        $$('.nav-btn').forEach((b) => b.classList.remove('active'));
+        $$('.view').forEach((v) => v.classList.remove('active'));
+        $('[data-view="tracker"]').classList.add('active');
+        $('#tracker').classList.add('active');
     } else if (location.hash === '#entries') {
         location.hash = '';
         $$('.nav-btn').forEach((b) => b.classList.remove('active'));

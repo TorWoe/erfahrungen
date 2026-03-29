@@ -319,12 +319,16 @@ textarea::placeholder {
     color: var(--text-muted);
 }
 
-/* Entries */
-.entries-header {
-    margin-bottom: 20px;
+/* Filter Card (shared box style for Einträge, Berichte, Suche) */
+.filter-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px auto 20px;
 }
 
-.entries-header h2 {
+.filter-card h2 {
     margin-bottom: 12px;
 }
 
@@ -479,13 +483,6 @@ textarea::placeholder {
 }
 
 /* Reports */
-.reports-header {
-    margin-bottom: 20px;
-}
-
-.reports-header h2 {
-    margin-bottom: 12px;
-}
 
 .report-row1 {
     display: flex;
@@ -582,13 +579,6 @@ textarea::placeholder {
 }
 
 /* Search */
-.search-header {
-    margin-bottom: 20px;
-}
-
-.search-header h2 {
-    margin-bottom: 12px;
-}
 
 .search-row1 {
     display: flex;

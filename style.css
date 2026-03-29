@@ -384,18 +384,26 @@ textarea::placeholder {
 
 .entries-filters-row2 {
     display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.entries-filters-row3 {
+    display: flex;
     gap: 10px;
     flex-wrap: wrap;
     align-items: center;
     margin-bottom: 10px;
 }
 
-.entries-filters-row2 select {
+.entries-filters-row3 select {
     flex: 1;
     min-width: 140px;
 }
 
-.entries-filters-row3 {
+.entries-filters-row4 {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
@@ -506,7 +514,15 @@ textarea::placeholder {
     min-width: 140px;
 }
 
-.report-row1 label {
+.report-row2 {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.report-row2 label {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -514,7 +530,7 @@ textarea::placeholder {
     color: var(--text-muted);
 }
 
-.report-row2 {
+.report-row3 {
     display: flex;
     gap: 6px;
     flex-wrap: wrap;
@@ -1109,16 +1125,16 @@ textarea::placeholder {
         flex-direction: column;
     }
 
-    .entries-filters-row2 {
+    .entries-filters-row3 {
         flex-direction: column;
     }
 
-    .entries-filters-row2 select {
+    .entries-filters-row3 select {
         width: 100%;
         min-width: 0;
     }
 
-    .entries-filters-row3 {
+    .entries-filters-row4 {
         flex-direction: column;
     }
 
@@ -1149,6 +1165,10 @@ textarea::placeholder {
     }
 
     .report-row2 {
+        flex-direction: column;
+    }
+
+    .report-row3 {
         flex-wrap: wrap;
     }
 

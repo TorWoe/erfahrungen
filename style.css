@@ -444,9 +444,9 @@ nav {
     max-width: 474px;
     padding: 18px;
     border-radius: 16px;
-    background: rgba(255, 245, 230, 0.84);
-    border-color: rgba(204, 160, 84, 0.22);
-    box-shadow: 0 16px 34px rgba(188, 136, 70, 0.1);
+    background: var(--surface);
+    border-color: var(--border);
+    box-shadow: var(--shadow-card);
 }
 
 #tracker .eingabe-card h3 {
@@ -619,6 +619,12 @@ nav {
 #tracker #btn-manual-add {
     width: 100%;
     margin-top: 2px;
+}
+
+#btn-eingabe-reset {
+    background: var(--surface);
+    border-color: var(--border);
+    box-shadow: var(--shadow-card);
 }
 
 .eingabe-date-row,

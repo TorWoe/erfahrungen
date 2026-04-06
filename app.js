@@ -242,6 +242,10 @@
         const dropdown = container.querySelector('.multi-select-dropdown');
         const toggle = container.querySelector('.multi-select-toggle');
         const selected = selectedIds || [];
+        const hasOptions = state.triggers.length > 0;
+
+        container.classList.toggle('multi-select-empty', !hasOptions);
+        dropdown.classList.remove('open');
 
         dropdown.innerHTML = state.triggers
             .map((t) => `<label class="multi-select-option">
@@ -261,6 +265,7 @@
 
         newToggle.addEventListener('click', (e) => {
             e.stopPropagation();
+            if (!hasOptions) return;
             $$('.multi-select-dropdown').forEach((d) => {
                 if (d !== dropdown) d.classList.remove('open');
             });

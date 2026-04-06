@@ -494,6 +494,31 @@ nav {
     right: 13px;
 }
 
+#tracker .inline-multi-select,
+#edit-modal .inline-multi-select {
+    position: relative;
+    margin-bottom: 0;
+}
+
+#tracker .multi-select-dropdown,
+#edit-modal .multi-select-dropdown {
+    top: calc(100% + 4px);
+    margin-top: 0;
+}
+
+#tracker .multi-select-dropdown:empty,
+#edit-modal .multi-select-dropdown:empty {
+    display: none !important;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+}
+
+#tracker .multi-select-empty .multi-select-toggle,
+#edit-modal .multi-select-empty .multi-select-toggle {
+    cursor: default;
+}
+
 #tracker .insights-section {
     gap: 6px;
 }

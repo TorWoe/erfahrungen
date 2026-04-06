@@ -421,7 +421,7 @@ nav {
 
 .entry-insights {
     margin-top: 14px;
-    color: var(--text-soft);
+    color: #111111;
 }
 
 .entry-insights > strong {
@@ -1048,7 +1048,7 @@ input[type="color"],
 .entry-description,
 .tip-text {
     margin-top: 12px;
-    color: var(--text-soft);
+    color: #111111;
     line-height: 1.68;
     white-space: pre-wrap;
 }

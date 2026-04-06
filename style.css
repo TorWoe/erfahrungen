@@ -1808,6 +1808,36 @@ a {
         flex-basis: 100%;
     }
 
+    .settings-section .settings-add:not(.settings-tip-add) {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 40px 44px;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .settings-section .settings-add:not(.settings-tip-add) > * {
+        flex: none;
+    }
+
+    .settings-section .settings-add:not(.settings-tip-add) input[type="text"] {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .settings-section .settings-add:not(.settings-tip-add) input[type="color"] {
+        width: 40px;
+        min-width: 40px;
+        height: 44px;
+        padding: 2px;
+        border-radius: 10px;
+    }
+
+    .settings-section .settings-add:not(.settings-tip-add) .btn {
+        width: 44px;
+        min-width: 44px;
+        padding: 0;
+    }
+
     .tips-toolbar {
         gap: 8px;
     }

@@ -1336,10 +1336,6 @@
     $('#btn-search-top').addEventListener('click', renderSearch);
     $('#btn-search-reset-top').addEventListener('click', resetSearchView);
     $('#btn-search-reset-bottom').addEventListener('click', resetSearchView);
-    $('#btn-search-reset-bottom').addEventListener('click', () => {
-        location.hash = 'search';
-        location.reload();
-    });
     $('#search-text').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') renderSearch();
     });

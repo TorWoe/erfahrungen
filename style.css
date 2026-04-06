@@ -833,6 +833,16 @@ input[type="color"],
     min-width: 152px;
 }
 
+#reports .report-row2 label {
+    flex: 0 0 auto;
+}
+
+#reports #report-range-start,
+#reports #report-range-end {
+    width: 152px;
+    min-width: 152px;
+}
+
 .multi-select {
     position: relative;
     flex: 1 1 220px;

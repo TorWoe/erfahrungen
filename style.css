@@ -774,6 +774,13 @@ input[type="color"],
     border-color: rgba(201, 99, 114, 0.26);
 }
 
+.btn-secondary.active {
+    color: #fffaf8;
+    background: linear-gradient(135deg, var(--accent-2), var(--accent));
+    border-color: transparent;
+    box-shadow: 0 10px 22px rgba(240, 180, 105, 0.26);
+}
+
 .btn-danger {
     color: #fff8f6;
     background: linear-gradient(135deg, var(--danger), #c85e6d);

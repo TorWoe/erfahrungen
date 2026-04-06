@@ -835,12 +835,18 @@ input[type="color"],
 
 #reports .report-row2 label {
     flex: 0 0 auto;
+    align-self: center;
 }
 
 #reports #report-range-start,
 #reports #report-range-end {
     width: 152px;
     min-width: 152px;
+}
+
+#reports #report-range-apply {
+    align-self: center;
+    min-height: 48px;
 }
 
 .multi-select {

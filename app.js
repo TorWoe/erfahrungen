@@ -8,6 +8,7 @@
         categories: [],
         triggers: [],
         tips: [],
+        searchShowAll: true,
         reportPeriod: 'year',
         reportOffset: 0,
         reportCustomStart: '',
@@ -193,7 +194,7 @@
             if (btn.dataset.view === 'reports') renderReports();
             if (btn.dataset.view === 'search') {
                 initSearchMultiSelects();
-                renderSearchShowAll();
+                renderSearchCurrentView();
             }
             if (btn.dataset.view === 'settings') renderSettings();
             if (btn.dataset.view === 'tips') renderTips();
@@ -1050,6 +1051,28 @@
         populateMultiSelect('search-trigger-select', state.triggers, 'Trigger');
     }
 
+    function clearSearchMultiSelect(containerId, labelDefault) {
+        const container = $(`#${containerId}`);
+        container.querySelectorAll('.multi-select-dropdown input[type="checkbox"]').forEach((cb) => {
+            cb.checked = false;
+        });
+        const toggle = container.querySelector('.multi-select-toggle');
+        if (toggle) toggle.textContent = labelDefault;
+    }
+
+    function updateSearchShowAllButton() {
+        $('#btn-show-all').classList.toggle('active', state.searchShowAll);
+    }
+
+    function renderSearchEmpty() {
+        const countEl = $('#search-result-count');
+        const list = $('#search-results');
+        const tipsList = $('#search-results-tips');
+        countEl.textContent = '';
+        list.innerHTML = '<div class="no-entries">Bitte Suchbegriff eingeben oder Filter wÃ¤hlen.</div>';
+        tipsList.innerHTML = '';
+    }
+
     function getMultiSelectValues(containerId) {
         const checkboxes = $(`#${containerId}`).querySelectorAll('.multi-select-dropdown input:checked');
         return Array.from(checkboxes).map((cb) => cb.value);
@@ -1121,6 +1144,8 @@
     }
 
     function renderSearch() {
+        state.searchShowAll = false;
+        updateSearchShowAllButton();
         const { filtered, query, selectedProjects, selectedCategories, selectedTriggers } = getSearchFiltered();
 
         const countEl = $('#search-result-count');
@@ -1130,9 +1155,7 @@
         const hasFilters = query || selectedProjects.length > 0 || selectedCategories.length > 0 || selectedTriggers.length > 0;
 
         if (!hasFilters) {
-            countEl.textContent = '';
-            list.innerHTML = '<div class="no-entries">Bitte Suchbegriff eingeben oder Filter wählen.</div>';
-            tipsList.innerHTML = '';
+            renderSearchEmpty();
             return;
         }
 
@@ -1180,6 +1203,8 @@
     }
 
     function renderSearchShowAll() {
+        state.searchShowAll = true;
+        updateSearchShowAllButton();
         const filtered = [...state.entries].sort((a, b) => {
             return (b.timestamp || '').localeCompare(a.timestamp || '');
         });
@@ -1229,10 +1254,31 @@
         tipsList.innerHTML = renderTipSearchResults(allTips);
     }
 
-    $('#btn-search-reset').addEventListener('click', () => {
-        location.hash = 'search';
-        location.reload();
-    });
+    function resetSearchView() {
+        $('#search-text').value = '';
+        clearSearchMultiSelect('search-project-select', 'Bezugsperson / Bezugsobjekt');
+        clearSearchMultiSelect('search-category-select', 'primärer Auslöser');
+        clearSearchMultiSelect('search-trigger-select', 'Trigger');
+        $$('.multi-select-dropdown').forEach((d) => d.classList.remove('open'));
+        state.searchShowAll = false;
+        updateSearchShowAllButton();
+        renderSearchEmpty();
+    }
+
+    function renderSearchCurrentView() {
+        const { query, selectedProjects, selectedCategories, selectedTriggers } = getSearchFiltered();
+        const hasFilters = query || selectedProjects.length > 0 || selectedCategories.length > 0 || selectedTriggers.length > 0;
+
+        if (state.searchShowAll) {
+            renderSearchShowAll();
+        } else if (hasFilters) {
+            renderSearch();
+        } else {
+            renderSearchEmpty();
+        }
+    }
+
+    $('#btn-search-reset').addEventListener('click', resetSearchView);
 
     $('#btn-eingabe-reset').addEventListener('click', () => {
         location.hash = 'tracker';
@@ -1278,14 +1324,18 @@
         URL.revokeObjectURL(url);
     });
 
-    $('#btn-show-all').addEventListener('click', renderSearchShowAll);
+    $('#btn-show-all').addEventListener('click', () => {
+        if (state.searchShowAll) {
+            resetSearchView();
+        } else {
+            renderSearchShowAll();
+        }
+    });
 
     $('#btn-search').addEventListener('click', renderSearch);
     $('#btn-search-top').addEventListener('click', renderSearch);
-    $('#btn-search-reset-top').addEventListener('click', () => {
-        location.hash = 'search';
-        location.reload();
-    });
+    $('#btn-search-reset-top').addEventListener('click', resetSearchView);
+    $('#btn-search-reset-bottom').addEventListener('click', resetSearchView);
     $('#btn-search-reset-bottom').addEventListener('click', () => {
         location.hash = 'search';
         location.reload();
@@ -1738,7 +1788,7 @@
         $('[data-view="search"]').classList.add('active');
         $('#search').classList.add('active');
         initSearchMultiSelects();
-        renderSearchShowAll();
+        renderSearchCurrentView();
     } else if (location.hash === '#tracker') {
         location.hash = '';
         $$('.nav-btn').forEach((b) => b.classList.remove('active'));
@@ -1754,6 +1804,6 @@
         renderEntries();
     } else {
         initSearchMultiSelects();
-        renderSearchShowAll();
+        renderSearchCurrentView();
     }
 })();

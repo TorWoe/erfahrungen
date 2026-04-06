@@ -440,6 +440,137 @@ nav {
     line-height: 1.55;
 }
 
+#tracker .eingabe-card {
+    max-width: 474px;
+    padding: 18px;
+    border-radius: 16px;
+    background: rgba(255, 245, 230, 0.84);
+    border-color: rgba(204, 160, 84, 0.22);
+    box-shadow: 0 16px 34px rgba(188, 136, 70, 0.1);
+}
+
+#tracker .eingabe-card h3 {
+    margin-bottom: 12px;
+    font-size: 1rem;
+    color: #c18a08;
+}
+
+#tracker .eingabe-form {
+    gap: 8px;
+}
+
+#tracker input[type="text"],
+#tracker input[type="date"],
+#tracker select,
+#tracker textarea,
+#tracker .multi-select-toggle,
+#edit-modal input[type="text"],
+#edit-modal input[type="date"],
+#edit-modal select,
+#edit-modal textarea,
+#edit-modal .multi-select-toggle {
+    border-color: rgba(212, 188, 126, 0.62);
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: 9px;
+    min-height: 36px;
+    padding: 9px 12px;
+    font-size: 0.92rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+#tracker textarea,
+#edit-modal textarea {
+    min-height: 84px;
+}
+
+#tracker .multi-select-toggle,
+#edit-modal .multi-select-toggle {
+    min-height: 36px;
+    padding-right: 34px;
+}
+
+#tracker .multi-select-toggle::after,
+#edit-modal .multi-select-toggle::after {
+    right: 13px;
+}
+
+#tracker .insights-section {
+    gap: 6px;
+}
+
+#tracker .insights-label {
+    font-size: 0.84rem;
+}
+
+#tracker .insight-row {
+    align-items: stretch;
+    gap: 8px;
+}
+
+#tracker .insight-row textarea,
+#edit-modal .insight-row textarea {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    min-height: 48px;
+}
+
+#tracker .insight-number-input,
+#edit-modal .insight-number-input {
+    flex: 0 0 48px;
+    width: 48px;
+    min-width: 48px;
+    padding: 0 8px;
+}
+
+#tracker .btn-remove-insight,
+#edit-modal .btn-remove-insight {
+    flex: 0 0 26px;
+    width: 26px;
+    min-width: 26px;
+    min-height: 26px;
+    padding: 0;
+    border: 1px solid rgba(212, 188, 126, 0.62);
+    border-radius: 6px;
+    background: rgba(255, 252, 244, 0.96);
+    color: #b88a2b;
+    box-shadow: none;
+}
+
+#tracker .btn-add-insight,
+#edit-modal .btn-add-insight {
+    min-height: 28px;
+    width: 32px;
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid rgba(212, 188, 126, 0.62);
+    background: rgba(255, 252, 244, 0.96);
+    color: #b88a2b;
+    box-shadow: none;
+}
+
+#tracker .eingabe-date-row {
+    margin-top: 2px;
+}
+
+#tracker .eingabe-date-row label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.84rem;
+}
+
+#tracker .eingabe-date-row input[type="date"] {
+    width: 154px;
+    min-width: 154px;
+}
+
+#tracker #btn-manual-add {
+    width: 100%;
+    margin-top: 2px;
+}
+
 .eingabe-date-row,
 .modal-time-row,
 .tip-edit-row,

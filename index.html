@@ -7,9 +7,19 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="page-background" aria-hidden="true">
+        <div class="page-glow page-glow-a"></div>
+        <div class="page-glow page-glow-b"></div>
+        <div class="page-grid"></div>
+        <div class="page-wave page-wave-a"></div>
+        <div class="page-wave page-wave-b"></div>
+        <div class="page-wave page-wave-c"></div>
+    </div>
+    <div class="app-shell">
     <div class="app">
         <header>
             <h1>Erfahrungen</h1>
+            <p class="app-intro">Ein freundlicher Ort fuer Erfahrungen, Erkenntnisse und hilfreiche Impulse, die Dich im Alltag staerken.</p>
             <nav>
                 <button class="nav-btn" data-view="tracker">Eingabe</button>
                 <button class="nav-btn" data-view="entries">Einträge</button>
@@ -49,7 +59,7 @@
                     <button id="btn-manual-add" class="btn btn-primary">Hinzufügen</button>
                 </div>
             </div>
-            <div style="text-align:center;margin-top:18px;">
+            <div class="view-actions">
                 <button id="btn-eingabe-reset" class="btn btn-secondary">Reset</button>
             </div>
         </section>
@@ -229,7 +239,7 @@
         </section>
         <!-- Tipps View -->
         <section id="tips" class="view">
-            <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="tips-toolbar">
                 <h2>Tipps</h2>
                 <button id="btn-tips-export" class="btn btn-secondary">CSV Export</button>
             </div>
@@ -280,6 +290,7 @@
                 <button class="btn btn-secondary" id="edit-cancel">Abbrechen</button>
             </div>
         </div>
+    </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>

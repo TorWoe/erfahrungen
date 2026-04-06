@@ -502,7 +502,7 @@
                             <span>${e.date}</span>
                             ${projBadge}${catBadge}${trigBadges}
                         </div>
-                        <div style="margin-top:4px">${tagsHtml}</div>
+                        <div class="tag-row">${tagsHtml}</div>
                         ${descHtml}
                         ${insightsHtml}
                     </div>
@@ -880,8 +880,8 @@
     }
 
     function renderCharts(entries) {
-        const chartTextColor = '#333';
-        const chartGridColor = '#d4c98a';
+        const rootStyles = getComputedStyle(document.documentElement);
+        const chartTextColor = rootStyles.getPropertyValue('--chart-text').trim() || '#5d4659';
 
         // Bezugsperson / Bezugsobjekt chart (count)
         const projectData = {};
@@ -1092,7 +1092,7 @@
                     <span class="tip-title">${escHtml(tip.title)}</span>
                     ${numDisplay}
                 </div>
-                ${tagsHtml ? `<div style="margin-top:4px">${tagsHtml}</div>` : ''}
+                ${tagsHtml ? `<div class="tag-row">${tagsHtml}</div>` : ''}
                 <div class="tip-text">${escHtml(tip.text)}</div>
             </div>`;
         }).join('');
@@ -1145,7 +1145,7 @@
                                 <span>${e.date}</span>
                                 ${projBadge}${catBadge}${trigBadges}
                             </div>
-                            <div style="margin-top:4px">${tagsHtml}</div>
+                            <div class="tag-row">${tagsHtml}</div>
                             ${descHtml}
                             ${insightsHtml}
                         </div>
@@ -1244,7 +1244,7 @@
                                 <span>${e.date}</span>
                                 ${projBadge}${catBadge}${trigBadges}
                             </div>
-                            <div style="margin-top:4px">${tagsHtml}</div>
+                            <div class="tag-row">${tagsHtml}</div>
                             ${descHtml}
                             ${insightsHtml}
                         </div>
@@ -1653,7 +1653,7 @@
                     <span class="tip-title">${escHtml(tip.title)}</span>
                     ${numDisplay}
                 </div>
-                ${tagsHtml ? `<div style="margin-top:4px">${tagsHtml}</div>` : ''}
+                ${tagsHtml ? `<div class="tag-row">${tagsHtml}</div>` : ''}
                 <div class="tip-text">${escHtml(tip.text)}</div>
                 <div class="tip-actions">
                     <button onclick="app.editTip('${tip.id}')">Bearbeiten</button>

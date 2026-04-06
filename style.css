@@ -444,7 +444,7 @@ nav {
     max-width: 474px;
     padding: 18px;
     border-radius: 16px;
-    background: var(--surface);
+    background: rgba(255, 248, 241, 0.92);
     border-color: var(--border);
     box-shadow: var(--shadow-card);
 }
@@ -622,7 +622,7 @@ nav {
 }
 
 #btn-eingabe-reset {
-    background: var(--surface);
+    background: rgba(255, 248, 241, 0.92);
     border-color: var(--border);
     box-shadow: var(--shadow-card);
 }

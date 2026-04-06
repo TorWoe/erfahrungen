@@ -459,6 +459,11 @@ nav {
     gap: 8px;
 }
 
+#tracker .eingabe-form > *,
+#edit-modal .modal-form > * {
+    flex: 0 0 auto;
+}
+
 #tracker input[type="text"],
 #tracker input[type="date"],
 #tracker select,
@@ -492,6 +497,26 @@ nav {
 #tracker .multi-select-toggle::after,
 #edit-modal .multi-select-toggle::after {
     right: 13px;
+}
+
+#tracker #manual-trigger-select,
+#edit-modal #edit-trigger-select {
+    display: block;
+    flex: none;
+    height: auto;
+    min-height: 0;
+    align-self: stretch;
+}
+
+#tracker #manual-trigger-select .multi-select-toggle,
+#edit-modal #edit-trigger-select .multi-select-toggle {
+    position: relative;
+}
+
+#tracker #manual-trigger-select .multi-select-toggle::after,
+#edit-modal #edit-trigger-select .multi-select-toggle::after {
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
 }
 
 #tracker .inline-multi-select,
@@ -803,6 +828,7 @@ input[type="color"],
 }
 
 .multi-select-toggle {
+    position: relative;
     display: flex;
     align-items: center;
     padding-right: 38px;
@@ -876,6 +902,7 @@ input[type="color"],
 }
 
 .inline-multi-select {
+    flex: 0 0 auto;
     width: 100%;
     min-width: 0;
 }

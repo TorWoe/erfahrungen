@@ -1039,9 +1039,9 @@ input[type="color"],
     flex-wrap: wrap;
     padding: 20px 22px;
     border-radius: 24px;
-    border: 1px solid rgba(205, 146, 141, 0.18);
+    border: 2px solid var(--border-3d);
     background: transparent;
-    box-shadow: var(--shadow-card);
+    box-shadow: var(--shadow-card-3d);
 }
 
 .entry-info {
@@ -1336,6 +1336,8 @@ input[type="color"],
 
 .tip-card {
     scroll-margin-top: 24px;
+    border: 2px solid var(--border-3d);
+    box-shadow: var(--shadow-card-3d);
 }
 
 .tip-header {

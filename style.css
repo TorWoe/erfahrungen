@@ -572,6 +572,8 @@ nav {
     width: 48px;
     min-width: 48px;
     padding: 0 8px;
+    background: transparent;
+    box-shadow: none;
 }
 
 #tracker .btn-remove-insight,
@@ -583,7 +585,7 @@ nav {
     padding: 0;
     border: 1px solid rgba(212, 188, 126, 0.62);
     border-radius: 6px;
-    background: rgba(255, 252, 244, 0.96);
+    background: transparent;
     color: #b88a2b;
     box-shadow: none;
 }
@@ -595,7 +597,7 @@ nav {
     padding: 0;
     border-radius: 8px;
     border: 1px solid rgba(212, 188, 126, 0.62);
-    background: rgba(255, 252, 244, 0.96);
+    background: transparent;
     color: #b88a2b;
     box-shadow: none;
 }
@@ -1067,6 +1069,10 @@ input[type="color"],
     font-weight: 700;
 }
 
+.search-result-count:empty {
+    display: none;
+}
+
 #search .search-row3 {
     display: flex;
     align-items: center;
@@ -1086,7 +1092,7 @@ input[type="color"],
     padding: 24px 20px;
     border-radius: 22px;
     border: 1px dashed rgba(205, 146, 141, 0.34);
-    background: rgba(255, 245, 236, 0.78);
+    background: transparent;
     text-align: center;
     color: var(--text-soft);
     line-height: 1.6;

@@ -1078,7 +1078,7 @@
         const list = $('#search-results');
         const tipsList = $('#search-results-tips');
         countEl.textContent = '';
-        list.innerHTML = '<div class="no-entries">Bitte Suchbegriff eingeben oder Filter wÃ¤hlen.</div>';
+        list.innerHTML = '<div class="no-entries">Bitte Suchbegriff eingeben oder Filter wählen.</div>';
         tipsList.innerHTML = '';
     }
 

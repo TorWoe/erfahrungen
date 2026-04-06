@@ -827,6 +827,12 @@ input[type="color"],
     min-width: 152px;
 }
 
+#reports #report-date {
+    flex: 0 0 152px;
+    width: 152px;
+    min-width: 152px;
+}
+
 .multi-select {
     position: relative;
     flex: 1 1 220px;

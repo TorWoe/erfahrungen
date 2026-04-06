@@ -8,7 +8,7 @@
         categories: [],
         triggers: [],
         tips: [],
-        reportPeriod: 'day',
+        reportPeriod: 'year',
         reportOffset: 0,
         reportCustomStart: '',
         reportCustomEnd: '',
@@ -701,6 +701,7 @@
 
     // Set initial report date to today
     $('#report-date').value = todayStr();
+    updateReportTabs();
 
     function updateReportTabs() {
         $$('.report-tab').forEach((t) => {
@@ -773,6 +774,19 @@
         } else {
             state.reportOffset++;
         }
+        renderReports();
+    });
+
+    $('#report-reset').addEventListener('click', () => {
+        const today = todayStr();
+        $('#report-date').value = today;
+        $('#report-range-start').value = '';
+        $('#report-range-end').value = '';
+        state.reportPeriod = 'day';
+        state.reportOffset = 0;
+        state.reportCustomStart = '';
+        state.reportCustomEnd = '';
+        updateReportTabs();
         renderReports();
     });
 

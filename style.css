@@ -393,7 +393,7 @@ nav {
 .tip-number-input {
     width: 72px;
     flex: 0 0 auto;
-    text-align: center;
+    text-align: left;
 }
 
 .insight-number {
@@ -726,6 +726,31 @@ input[type="color"],
     border: 1px solid rgba(205, 146, 141, 0.26);
     background: var(--surface-strong);
     cursor: pointer;
+}
+
+.settings-section .settings-add:not(.settings-tip-add) {
+    flex-wrap: nowrap;
+}
+
+.settings-section .settings-add:not(.settings-tip-add) input[type="text"] {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+}
+
+.settings-section .settings-add:not(.settings-tip-add) input[type="color"] {
+    flex: 0 0 34px;
+    width: 34px;
+    min-width: 34px;
+    padding: 2px;
+    border-radius: 10px;
+}
+
+.settings-section .settings-add:not(.settings-tip-add) .btn {
+    flex: 0 0 46px;
+    width: 46px;
+    min-width: 46px;
+    padding: 0;
 }
 
 .btn {
@@ -1207,6 +1232,16 @@ input[type="color"],
 
 .settings-tip-add .btn {
     width: fit-content;
+}
+
+.settings-tip-add .tip-number-input,
+.tip-edit-row .tip-number-input,
+.settings-tip-edit-form .tip-number-input {
+    width: 56px;
+    min-width: 56px;
+    flex: 0 0 56px;
+    text-align: left;
+    padding-left: 12px;
 }
 
 .tips-intro {

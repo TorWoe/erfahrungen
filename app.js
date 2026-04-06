@@ -466,6 +466,8 @@
     }
 
     function renderEntries() {
+        updatePeriodButtons();
+
         const filterProject = $('#filter-project').value;
         const filterCategory = $('#filter-category').value;
         const filterTrigger = $('#filter-trigger').value;
@@ -623,8 +625,15 @@
     });
 
     $('#btn-entries-reset').addEventListener('click', () => {
-        location.hash = 'entries';
-        location.reload();
+        const today = todayStr();
+        $('#filter-date').value = today;
+        $('#filter-project').value = '';
+        $('#filter-category').value = '';
+        $('#filter-trigger').value = '';
+        periodFilter.mode = 'day';
+        periodFilter.ref = new Date(today + 'T00:00:00');
+        updatePeriodButtons();
+        renderEntries();
     });
 
     // ── CSV Export ──

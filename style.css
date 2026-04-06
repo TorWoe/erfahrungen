@@ -444,9 +444,10 @@ nav {
     max-width: 474px;
     padding: 18px;
     border-radius: 16px;
-    background: rgba(255, 248, 241, 0.92);
+    background: rgba(255, 249, 244, 0.97);
     border-color: var(--border);
     box-shadow: var(--shadow-card);
+    backdrop-filter: none;
 }
 
 #tracker .eingabe-card h3 {
@@ -622,9 +623,14 @@ nav {
 }
 
 #btn-eingabe-reset {
-    background: rgba(255, 248, 241, 0.92);
+    background: rgba(255, 249, 244, 0.97);
     border-color: var(--border);
     box-shadow: var(--shadow-card);
+}
+
+#btn-eingabe-reset:hover {
+    background: rgba(255, 249, 244, 0.97);
+    border-color: var(--border);
 }
 
 .eingabe-date-row,

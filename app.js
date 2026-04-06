@@ -425,7 +425,7 @@
 
     // ── Entries View ──
     // Period filter state: { mode: 'day'|'week'|'month'|'year', ref: Date }
-    const periodFilter = { mode: 'day', ref: new Date() };
+    const periodFilter = { mode: 'year', ref: new Date() };
 
     function fmtDate(d) {
         return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');

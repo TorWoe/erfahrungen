@@ -191,7 +191,10 @@
             $(`#${btn.dataset.view}`).classList.add('active');
             if (btn.dataset.view === 'entries') renderEntries();
             if (btn.dataset.view === 'reports') renderReports();
-            if (btn.dataset.view === 'search') initSearchMultiSelects();
+            if (btn.dataset.view === 'search') {
+                initSearchMultiSelects();
+                renderSearchShowAll();
+            }
             if (btn.dataset.view === 'settings') renderSettings();
             if (btn.dataset.view === 'tips') renderTips();
         });
@@ -1176,6 +1179,56 @@
         tipsList.innerHTML = renderTipSearchResults(filteredTips);
     }
 
+    function renderSearchShowAll() {
+        const filtered = [...state.entries].sort((a, b) => {
+            return (b.timestamp || '').localeCompare(a.timestamp || '');
+        });
+        const allTips = sortTips([...state.tips]);
+
+        const countEl = $('#search-result-count');
+        const list = $('#search-results');
+        const tipsList = $('#search-results-tips');
+        const totalCount = filtered.length + allTips.length;
+
+        countEl.textContent = `${totalCount} Eintr${totalCount !== 1 ? 'äge' : 'ag'} gesamt`;
+
+        if (filtered.length === 0) {
+            list.innerHTML = '';
+        } else {
+            list.innerHTML = filtered
+                .map((e) => {
+                    const proj = state.projects.find((p) => p.id === e.project);
+                    const cat = state.categories.find((c) => c.id === e.category);
+                    const trigIds = getEntryTriggers(e);
+                    const tagsHtml = (e.tags || []).map((t) => `<span class="tag">${escHtml(t)}</span>`).join('');
+                    const projBadge = proj ? `<span class="project-badge" style="background:${proj.color}22;color:${proj.color}">${escHtml(proj.name)}</span>` : '';
+                    const catBadge = cat ? `<span class="category-badge" style="background:${cat.color}22;color:${cat.color}">${escHtml(cat.name)}</span>` : '';
+                    const trigBadges = trigIds.map((tid) => {
+                        const trig = state.triggers.find((t) => t.id === tid);
+                        return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
+                    }).join('');
+                    const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
+                    const insightsHtml = renderInsightsHtml(e.insights || []);
+
+                    return `<div class="entry-card">
+                        <div class="entry-info">
+                            <div class="entry-task">${escHtml(e.task)}</div>
+                            <div class="entry-meta">
+                                <span>${e.date}</span>
+                                ${projBadge}${catBadge}${trigBadges}
+                            </div>
+                            <div class="tag-row">${tagsHtml}</div>
+                            ${descHtml}
+                            ${insightsHtml}
+                        </div>
+                    </div>`;
+                })
+                .join('');
+        }
+
+        tipsList.innerHTML = renderTipSearchResults(allTips);
+    }
+
     $('#btn-search-reset').addEventListener('click', () => {
         location.hash = 'search';
         location.reload();
@@ -1225,59 +1278,15 @@
         URL.revokeObjectURL(url);
     });
 
-    $('#btn-show-all').addEventListener('click', () => {
-        const filtered = [...state.entries].sort((a, b) => {
-            return (b.timestamp || '').localeCompare(a.timestamp || '');
-        });
-        const allTips = sortTips([...state.tips]);
-
-        const countEl = $('#search-result-count');
-        const list = $('#search-results');
-        const tipsList = $('#search-results-tips');
-        const totalCount = filtered.length + allTips.length;
-
-        countEl.textContent = `${totalCount} Eintr${totalCount !== 1 ? 'äge' : 'ag'} gesamt`;
-
-        if (filtered.length === 0) {
-            list.innerHTML = '';
-        } else {
-            list.innerHTML = filtered
-                .map((e) => {
-                    const proj = state.projects.find((p) => p.id === e.project);
-                    const cat = state.categories.find((c) => c.id === e.category);
-                    const trigIds = getEntryTriggers(e);
-                    const tagsHtml = (e.tags || []).map((t) => `<span class="tag">${escHtml(t)}</span>`).join('');
-                    const projBadge = proj ? `<span class="project-badge" style="background:${proj.color}22;color:${proj.color}">${escHtml(proj.name)}</span>` : '';
-                    const catBadge = cat ? `<span class="category-badge" style="background:${cat.color}22;color:${cat.color}">${escHtml(cat.name)}</span>` : '';
-                    const trigBadges = trigIds.map((tid) => {
-                        const trig = state.triggers.find((t) => t.id === tid);
-                        return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
-                    }).join('');
-                    const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
-                    const insightsHtml = renderInsightsHtml(e.insights || []);
-
-                    return `<div class="entry-card">
-                        <div class="entry-info">
-                            <div class="entry-task">${escHtml(e.task)}</div>
-                            <div class="entry-meta">
-                                <span>${e.date}</span>
-                                ${projBadge}${catBadge}${trigBadges}
-                            </div>
-                            <div class="tag-row">${tagsHtml}</div>
-                            ${descHtml}
-                            ${insightsHtml}
-                        </div>
-                    </div>`;
-                })
-                .join('');
-        }
-
-        tipsList.innerHTML = renderTipSearchResults(allTips);
-    });
+    $('#btn-show-all').addEventListener('click', renderSearchShowAll);
 
     $('#btn-search').addEventListener('click', renderSearch);
     $('#btn-search-top').addEventListener('click', renderSearch);
     $('#btn-search-reset-top').addEventListener('click', () => {
+        location.hash = 'search';
+        location.reload();
+    });
+    $('#btn-search-reset-bottom').addEventListener('click', () => {
         location.hash = 'search';
         location.reload();
     });
@@ -1729,6 +1738,7 @@
         $('[data-view="search"]').classList.add('active');
         $('#search').classList.add('active');
         initSearchMultiSelects();
+        renderSearchShowAll();
     } else if (location.hash === '#tracker') {
         location.hash = '';
         $$('.nav-btn').forEach((b) => b.classList.remove('active'));
@@ -1744,5 +1754,6 @@
         renderEntries();
     } else {
         initSearchMultiSelects();
+        renderSearchShowAll();
     }
 })();

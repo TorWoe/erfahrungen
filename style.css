@@ -1046,6 +1046,13 @@ input[type="color"],
     font-weight: 700;
 }
 
+#search .search-row3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 #search > h3 {
     margin: 10px 0 14px;
     font-family: "Aptos Display", "Aptos", "Segoe UI", sans-serif;

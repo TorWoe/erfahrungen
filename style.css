@@ -594,9 +594,9 @@ nav {
 
 #tracker .insight-number-input,
 #edit-modal .insight-number-input {
-    flex: 0 0 48px;
-    width: 48px;
-    min-width: 48px;
+    flex: 0 0 56px;
+    width: 56px;
+    min-width: 56px;
     padding: 0 8px;
     background: transparent;
     box-shadow: var(--shadow-input-3d);
@@ -1277,9 +1277,9 @@ input[type="color"],
 .settings-tip-add .tip-number-input,
 .tip-edit-row .tip-number-input,
 .settings-tip-edit-form .tip-number-input {
-    width: 56px;
-    min-width: 56px;
-    flex: 0 0 56px;
+    width: 62px;
+    min-width: 62px;
+    flex: 0 0 62px;
     text-align: left;
     padding-left: 12px;
 }

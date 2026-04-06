@@ -833,9 +833,13 @@ input[type="color"],
     min-width: 152px;
 }
 
+#reports .report-row2 {
+    align-items: flex-end;
+}
+
 #reports .report-row2 label {
     flex: 0 0 auto;
-    align-self: center;
+    align-self: auto;
 }
 
 #reports #report-range-start,
@@ -845,7 +849,7 @@ input[type="color"],
 }
 
 #reports #report-range-apply {
-    align-self: center;
+    align-self: auto;
     min-height: 48px;
 }
 

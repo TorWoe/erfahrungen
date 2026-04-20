@@ -422,11 +422,12 @@ nav {
     display: flex;
     gap: 6px;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .rich-text-btn {
-    width: 34px;
-    min-width: 34px;
+    width: 36px;
+    min-width: 36px;
     min-height: 30px;
     padding: 0;
     border: 2px solid rgba(205, 146, 141, 0.32);
@@ -463,6 +464,19 @@ nav {
     overflow-y: auto;
     box-shadow: var(--shadow-input-3d);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.rich-text-editor ul,
+.rich-text-editor ol,
+.insight-content ul,
+.insight-content ol {
+    margin: 4px 0 4px 1.35rem;
+    padding-left: 1rem;
+}
+
+.rich-text-editor li,
+.insight-content li {
+    margin-bottom: 4px;
 }
 
 .rich-text-editor:empty::before {

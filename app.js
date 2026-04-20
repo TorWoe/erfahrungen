@@ -179,7 +179,7 @@
         return div.innerHTML;
     }
 
-    const richTextAllowedTags = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'BR', 'DIV', 'P', 'UL', 'OL', 'LI']);
+    const richTextAllowedTags = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'BR', 'DIV', 'P', 'UL', 'OL', 'LI', 'BLOCKQUOTE']);
     const richTextAllowedAttributes = new Set(['style']);
 
     function sanitizeRichTextHtml(html) {
@@ -223,7 +223,7 @@
 
     function insightTextToHtml(value) {
         const text = String(value || '');
-        const hasAllowedHtml = /<\/?(b|strong|i|em|u|br|div|p|ul|ol|li)\b/i.test(text);
+        const hasAllowedHtml = /<\/?(b|strong|i|em|u|br|div|p|ul|ol|li|blockquote)\b/i.test(text);
         if (hasAllowedHtml) return sanitizeRichTextHtml(text);
         return escHtml(text).replace(/\n/g, '<br>');
     }
@@ -232,7 +232,7 @@
         const div = document.createElement('div');
         div.innerHTML = sanitizeRichTextHtml(html || '');
         div.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
-        div.querySelectorAll('p, div, li').forEach((block) => {
+        div.querySelectorAll('p, div, li, blockquote').forEach((block) => {
             block.appendChild(document.createTextNode('\n'));
         });
         return (div.textContent || '')

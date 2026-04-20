@@ -179,6 +179,62 @@
         return div.innerHTML;
     }
 
+    const richTextAllowedTags = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'BR', 'DIV', 'P', 'UL', 'OL', 'LI']);
+
+    function sanitizeRichTextHtml(html) {
+        const template = document.createElement('template');
+        template.innerHTML = html || '';
+
+        function cleanNode(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                return document.createTextNode(node.textContent || '');
+            }
+            if (node.nodeType !== Node.ELEMENT_NODE) {
+                return document.createDocumentFragment();
+            }
+            if (!richTextAllowedTags.has(node.tagName)) {
+                const fragment = document.createDocumentFragment();
+                Array.from(node.childNodes).forEach((child) => {
+                    fragment.appendChild(cleanNode(child));
+                });
+                return fragment;
+            }
+            const element = document.createElement(node.tagName.toLowerCase());
+            Array.from(node.childNodes).forEach((child) => {
+                element.appendChild(cleanNode(child));
+            });
+            return element;
+        }
+
+        const fragment = document.createDocumentFragment();
+        Array.from(template.content.childNodes).forEach((child) => {
+            fragment.appendChild(cleanNode(child));
+        });
+        const wrapper = document.createElement('div');
+        wrapper.appendChild(fragment);
+        return wrapper.innerHTML;
+    }
+
+    function insightTextToHtml(value) {
+        const text = String(value || '');
+        const hasAllowedHtml = /<\/?(b|strong|i|em|u|br|div|p|ul|ol|li)\b/i.test(text);
+        if (hasAllowedHtml) return sanitizeRichTextHtml(text);
+        return escHtml(text).replace(/\n/g, '<br>');
+    }
+
+    function richTextToPlainText(html) {
+        const div = document.createElement('div');
+        div.innerHTML = sanitizeRichTextHtml(html || '');
+        div.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
+        div.querySelectorAll('p, div, li').forEach((block) => {
+            block.appendChild(document.createTextNode('\n'));
+        });
+        return (div.textContent || '')
+            .replace(/\u00a0/g, ' ')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+    }
+
     // ── DOM refs ──
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => document.querySelectorAll(sel);
@@ -321,10 +377,52 @@
         const container = $('#' + containerId);
         const row = document.createElement('div');
         row.className = 'insight-row';
-        const ta = document.createElement('textarea');
-        ta.placeholder = 'Erkenntnis / Antwort ...';
-        ta.rows = 2;
-        ta.value = value || '';
+        const editorWrap = document.createElement('div');
+        editorWrap.className = 'rich-text-field';
+        const toolbar = document.createElement('div');
+        toolbar.className = 'rich-text-toolbar';
+        const editor = document.createElement('div');
+        editor.className = 'rich-text-editor';
+        editor.contentEditable = 'true';
+        editor.setAttribute('role', 'textbox');
+        editor.setAttribute('aria-multiline', 'true');
+        editor.dataset.placeholder = 'Erkenntnis / Antwort ...';
+        editor.innerHTML = insightTextToHtml(value || '');
+
+        [
+            { command: 'bold', label: 'B', title: 'Fett' },
+            { command: 'italic', label: 'I', title: 'Kursiv' },
+            { command: 'underline', label: 'U', title: 'Unterstreichen' },
+        ].forEach(({ command, label, title }) => {
+            const formatBtn = document.createElement('button');
+            formatBtn.type = 'button';
+            formatBtn.className = 'rich-text-btn';
+            formatBtn.textContent = label;
+            formatBtn.title = title;
+            formatBtn.addEventListener('mousedown', (e) => e.preventDefault());
+            formatBtn.addEventListener('click', () => {
+                editor.focus();
+                document.execCommand(command, false, null);
+            });
+            toolbar.appendChild(formatBtn);
+        });
+
+        editor.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const html = e.clipboardData.getData('text/html');
+            const text = e.clipboardData.getData('text/plain');
+            if (html) {
+                document.execCommand('insertHTML', false, sanitizeRichTextHtml(html));
+            } else {
+                document.execCommand('insertText', false, text);
+            }
+        });
+        editor.addEventListener('blur', () => {
+            editor.innerHTML = sanitizeRichTextHtml(editor.innerHTML);
+        });
+
+        editorWrap.appendChild(toolbar);
+        editorWrap.appendChild(editor);
         const numInput = document.createElement('input');
         numInput.type = 'number';
         numInput.className = 'insight-number-input';
@@ -337,7 +435,7 @@
         btn.className = 'btn-remove-insight';
         btn.textContent = '\u00d7';
         btn.addEventListener('click', () => row.remove());
-        row.appendChild(ta);
+        row.appendChild(editorWrap);
         row.appendChild(numInput);
         row.appendChild(btn);
         container.prepend(row);
@@ -346,11 +444,12 @@
     function getInsightValues(containerId) {
         const rows = $('#' + containerId).querySelectorAll('.insight-row');
         return Array.from(rows).map((row) => {
-            const text = row.querySelector('textarea').value.trim();
+            const editor = row.querySelector('.rich-text-editor');
+            const text = sanitizeRichTextHtml(editor ? editor.innerHTML : '');
             const numVal = row.querySelector('.insight-number-input').value.trim();
             const sortOrder = numVal !== '' ? parseInt(numVal, 10) : null;
             return { text, sortOrder };
-        }).filter((i) => i.text);
+        }).filter((i) => richTextToPlainText(i.text));
     }
 
     function sortInsights(insights) {
@@ -375,7 +474,8 @@
         const listItems = sorted.map((i) => {
             const numBadge = (i.sortOrder !== null && i.sortOrder !== undefined && i.sortOrder !== '')
                 ? `<span class="insight-number">${escHtml(String(i.sortOrder))}</span> ` : '';
-            return `<li><strong>${numBadge}${escHtml(i.text)}</strong></li>`;
+            const insightHtml = insightTextToHtml(i.text);
+            return `<li>${numBadge}<div class="insight-content">${insightHtml}</div></li>`;
         }).join('');
         return `<div class="entry-insights"><strong><u>Erkenntnisse / Antworten:</u></strong><ul>${listItems}</ul></div>`;
     }
@@ -665,7 +765,7 @@
             const row = [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
             const ins = sortedInsightsPerEntry[idx];
             for (let i = 0; i < maxInsights; i++) {
-                const text = ins[i] ? ins[i].text : '';
+                const text = ins[i] ? richTextToPlainText(ins[i].text) : '';
                 row.push(`"${text.replace(/"/g, '""')}"`);
             }
             return row;
@@ -1100,7 +1200,11 @@
                 const taskMatch = e.task.toLowerCase().includes(query);
                 const tagMatch = (e.tags || []).some((t) => t.toLowerCase().includes(query));
                 const descMatch = (e.description || '').toLowerCase().includes(query);
-                return taskMatch || tagMatch || descMatch;
+                const insightMatch = (e.insights || []).some((i) => {
+                    const text = typeof i === 'string' ? i : i.text;
+                    return richTextToPlainText(text).toLowerCase().includes(query);
+                });
+                return taskMatch || tagMatch || descMatch || insightMatch;
             });
         }
 
@@ -1315,7 +1419,7 @@
             const row = [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
             const ins = sortedInsightsPerEntry[idx];
             for (let i = 0; i < maxInsights; i++) {
-                const text = ins[i] ? ins[i].text : '';
+                const text = ins[i] ? richTextToPlainText(ins[i].text) : '';
                 row.push(`"${text.replace(/"/g, '""')}"`);
             }
             return row;

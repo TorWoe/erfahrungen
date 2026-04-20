@@ -474,6 +474,13 @@ nav {
     padding-left: 1rem;
 }
 
+.rich-text-editor blockquote,
+.insight-content blockquote {
+    margin: 4px 0 4px 2rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid rgba(205, 146, 141, 0.28);
+}
+
 .rich-text-editor li,
 .insight-content li {
     display: list-item;
@@ -547,12 +554,14 @@ nav {
 }
 
 .insight-content p,
-.insight-content div {
+.insight-content div,
+.insight-content blockquote {
     margin-bottom: 4px;
 }
 
 .insight-content p:last-child,
-.insight-content div:last-child {
+.insight-content div:last-child,
+.insight-content blockquote:last-child {
     margin-bottom: 0;
 }
 

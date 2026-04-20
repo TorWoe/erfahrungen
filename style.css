@@ -469,20 +469,28 @@ nav {
 .rich-text-editor ul,
 .rich-text-editor ol,
 .insight-content ul,
-.insight-content ol {
+.insight-content ol,
+.entry-description ul,
+.entry-description ol,
+.tip-text ul,
+.tip-text ol {
     margin: 4px 0 4px 1.35rem;
     padding-left: 1rem;
 }
 
 .rich-text-editor blockquote,
-.insight-content blockquote {
+.insight-content blockquote,
+.entry-description blockquote,
+.tip-text blockquote {
     margin: 4px 0 4px 2rem;
     padding-left: 0;
     border-left: 0;
 }
 
 .rich-text-editor li,
-.insight-content li {
+.insight-content li,
+.entry-description li,
+.tip-text li {
     display: list-item;
     list-style-position: outside;
     margin-bottom: 4px;
@@ -555,13 +563,25 @@ nav {
 
 .insight-content p,
 .insight-content div,
-.insight-content blockquote {
+.insight-content blockquote,
+.entry-description p,
+.entry-description div,
+.entry-description blockquote,
+.tip-text p,
+.tip-text div,
+.tip-text blockquote {
     margin-bottom: 4px;
 }
 
 .insight-content p:last-child,
 .insight-content div:last-child,
-.insight-content blockquote:last-child {
+.insight-content blockquote:last-child,
+.entry-description p:last-child,
+.entry-description div:last-child,
+.entry-description blockquote:last-child,
+.tip-text p:last-child,
+.tip-text div:last-child,
+.tip-text blockquote:last-child {
     margin-bottom: 0;
 }
 
@@ -702,6 +722,14 @@ nav {
 #tracker .rich-text-editor,
 #edit-modal .rich-text-editor {
     min-height: 48px;
+}
+
+#tracker .rich-text-textarea-field .rich-text-editor,
+#edit-modal .rich-text-textarea-field .rich-text-editor,
+.settings-tip-add .rich-text-textarea-field .rich-text-editor,
+.tip-edit-form .rich-text-textarea-field .rich-text-editor,
+.settings-tip-edit-form .rich-text-textarea-field .rich-text-editor {
+    min-height: 84px;
 }
 
 #tracker .insight-number-input,
@@ -1227,7 +1255,7 @@ input[type="color"],
     margin-top: 12px;
     color: #111111;
     line-height: 1.68;
-    white-space: pre-wrap;
+    white-space: normal;
 }
 
 .search-result-count {

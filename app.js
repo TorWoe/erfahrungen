@@ -312,6 +312,105 @@
         editor.innerHTML = sanitizeRichTextHtml(editor.innerHTML);
     }
 
+    function createRichTextField(value, placeholder) {
+        const editorWrap = document.createElement('div');
+        editorWrap.className = 'rich-text-field';
+        const toolbar = document.createElement('div');
+        toolbar.className = 'rich-text-toolbar';
+        const editor = document.createElement('div');
+        editor.className = 'rich-text-editor';
+        editor.contentEditable = 'true';
+        editor.setAttribute('role', 'textbox');
+        editor.setAttribute('aria-multiline', 'true');
+        editor.dataset.placeholder = placeholder || 'Text ...';
+        editor.innerHTML = insightTextToHtml(value || '');
+
+        [
+            { command: 'bold', label: 'B', title: 'Fett' },
+            { command: 'italic', label: 'I', title: 'Kursiv' },
+            { command: 'underline', label: 'U', title: 'Unterstreichen' },
+            { command: 'insertUnorderedList', label: '•', title: 'Aufzählung' },
+            { command: 'insertOrderedList', label: '1.', title: 'Nummerierte Liste' },
+            { command: 'outdent', label: '←', title: 'Weniger einrücken' },
+            { command: 'indent', label: '→', title: 'Einrücken' },
+            { command: 'removeFormat', label: 'Tx', title: 'Formatierung entfernen' },
+        ].forEach(({ command, label, title }) => {
+            const formatBtn = document.createElement('button');
+            formatBtn.type = 'button';
+            formatBtn.className = 'rich-text-btn';
+            formatBtn.textContent = label;
+            formatBtn.title = title;
+            formatBtn.addEventListener('mousedown', (e) => e.preventDefault());
+            formatBtn.addEventListener('click', () => {
+                editor.focus();
+                if (command === 'removeFormat') {
+                    clearRichTextFormatting(editor);
+                } else {
+                    document.execCommand(command, false, null);
+                }
+            });
+            toolbar.appendChild(formatBtn);
+        });
+
+        editor.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const html = e.clipboardData.getData('text/html');
+            const text = e.clipboardData.getData('text/plain');
+            if (html) {
+                document.execCommand('insertHTML', false, sanitizeRichTextHtml(html));
+            } else {
+                document.execCommand('insertText', false, text);
+            }
+        });
+        editor.addEventListener('blur', () => {
+            editor.innerHTML = sanitizeRichTextHtml(editor.innerHTML);
+        });
+
+        editorWrap.appendChild(toolbar);
+        editorWrap.appendChild(editor);
+        return editorWrap;
+    }
+
+    function setupRichTextTextarea(target) {
+        const textarea = typeof target === 'string' ? document.querySelector(target) : target;
+        if (!textarea || textarea.dataset.richTextReady === 'true') return textarea;
+
+        const field = createRichTextField(textarea.value, textarea.placeholder);
+        field.classList.add('rich-text-textarea-field');
+        const editor = field.querySelector('.rich-text-editor');
+        const sync = () => {
+            textarea.value = sanitizeRichTextHtml(editor.innerHTML);
+        };
+
+        editor.addEventListener('input', sync);
+        editor.addEventListener('blur', sync);
+        textarea.after(field);
+        textarea.hidden = true;
+        textarea.dataset.richTextReady = 'true';
+        textarea.richTextEditor = editor;
+        textarea.syncRichText = sync;
+        sync();
+        return textarea;
+    }
+
+    function getRichTextTextareaValue(target) {
+        const textarea = setupRichTextTextarea(target);
+        if (!textarea) return '';
+        if (textarea.syncRichText) textarea.syncRichText();
+        return sanitizeRichTextHtml(textarea.value || '');
+    }
+
+    function setRichTextTextareaValue(target, value) {
+        const textarea = setupRichTextTextarea(target);
+        if (!textarea) return;
+        textarea.richTextEditor.innerHTML = insightTextToHtml(value || '');
+        textarea.syncRichText();
+    }
+
+    function clearRichTextTextarea(target) {
+        setRichTextTextareaValue(target, '');
+    }
+
     // ── DOM refs ──
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => document.querySelectorAll(sel);
@@ -454,61 +553,7 @@
         const container = $('#' + containerId);
         const row = document.createElement('div');
         row.className = 'insight-row';
-        const editorWrap = document.createElement('div');
-        editorWrap.className = 'rich-text-field';
-        const toolbar = document.createElement('div');
-        toolbar.className = 'rich-text-toolbar';
-        const editor = document.createElement('div');
-        editor.className = 'rich-text-editor';
-        editor.contentEditable = 'true';
-        editor.setAttribute('role', 'textbox');
-        editor.setAttribute('aria-multiline', 'true');
-        editor.dataset.placeholder = 'Erkenntnis / Antwort ...';
-        editor.innerHTML = insightTextToHtml(value || '');
-
-        [
-            { command: 'bold', label: 'B', title: 'Fett' },
-            { command: 'italic', label: 'I', title: 'Kursiv' },
-            { command: 'underline', label: 'U', title: 'Unterstreichen' },
-            { command: 'insertUnorderedList', label: '•', title: 'Aufzählung' },
-            { command: 'insertOrderedList', label: '1.', title: 'Nummerierte Liste' },
-            { command: 'outdent', label: '←', title: 'Weniger einrücken' },
-            { command: 'indent', label: '→', title: 'Einrücken' },
-            { command: 'removeFormat', label: 'Tx', title: 'Formatierung entfernen' },
-        ].forEach(({ command, label, title }) => {
-            const formatBtn = document.createElement('button');
-            formatBtn.type = 'button';
-            formatBtn.className = 'rich-text-btn';
-            formatBtn.textContent = label;
-            formatBtn.title = title;
-            formatBtn.addEventListener('mousedown', (e) => e.preventDefault());
-            formatBtn.addEventListener('click', () => {
-                editor.focus();
-                if (command === 'removeFormat') {
-                    clearRichTextFormatting(editor);
-                } else {
-                    document.execCommand(command, false, null);
-                }
-            });
-            toolbar.appendChild(formatBtn);
-        });
-
-        editor.addEventListener('paste', (e) => {
-            e.preventDefault();
-            const html = e.clipboardData.getData('text/html');
-            const text = e.clipboardData.getData('text/plain');
-            if (html) {
-                document.execCommand('insertHTML', false, sanitizeRichTextHtml(html));
-            } else {
-                document.execCommand('insertText', false, text);
-            }
-        });
-        editor.addEventListener('blur', () => {
-            editor.innerHTML = sanitizeRichTextHtml(editor.innerHTML);
-        });
-
-        editorWrap.appendChild(toolbar);
-        editorWrap.appendChild(editor);
+        const editorWrap = createRichTextField(value || '', 'Erkenntnis / Antwort ...');
         const numInput = document.createElement('input');
         numInput.type = 'number';
         numInput.className = 'insight-number-input';
@@ -590,7 +635,7 @@
             category: $('#manual-category').value,
             triggers: getInlineTriggerValues('manual-trigger-select'),
             tags: $('#manual-tags').value.split(',').map((t) => t.trim()).filter(Boolean),
-            description: $('#manual-description').value.trim(),
+            description: getRichTextTextareaValue('#manual-description'),
             insights: getInsightValues('manual-insights'),
             date: date,
             timestamp: new Date().toISOString(),
@@ -599,7 +644,7 @@
         save();
         $('#manual-task').value = '';
         $('#manual-tags').value = '';
-        $('#manual-description').value = '';
+        clearRichTextTextarea('#manual-description');
         $('#manual-project').value = '';
         $('#manual-category').value = '';
         clearInlineTriggerSelect('manual-trigger-select', '-- meine Trigger wählen --');
@@ -689,7 +734,7 @@
                     const trig = state.triggers.find((t) => t.id === tid);
                     return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
                 }).join('');
-                const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
+                const descHtml = e.description ? `<div class="entry-description">${insightTextToHtml(e.description)}</div>` : '';
                 const insightsHtml = renderInsightsHtml(e.insights || []);
 
                 return `<div class="entry-card">
@@ -848,7 +893,7 @@
                 const t = state.triggers.find((tr) => tr.id === tid);
                 return t ? t.name : '';
             }).filter(Boolean).join('; ');
-            const row = [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
+            const row = [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${richTextToPlainText(e.description || '').replace(/"/g, '""')}"`];
             const ins = sortedInsightsPerEntry[idx];
             for (let i = 0; i < maxInsights; i++) {
                 const text = ins[i] ? richTextToPlainText(ins[i].text) : '';
@@ -879,7 +924,7 @@
         const headers = ['Nummer', 'Titel', 'Text', 'Tags'];
         const rows = sorted.map((tip) => {
             const num = (tip.number !== null && tip.number !== undefined && tip.number !== '') ? tip.number : '';
-            return [num, `"${(tip.title || '').replace(/"/g, '""')}"`, `"${(tip.text || '').replace(/"/g, '""')}"`, (tip.tags || []).join('; ')];
+            return [num, `"${(tip.title || '').replace(/"/g, '""')}"`, `"${richTextToPlainText(tip.text || '').replace(/"/g, '""')}"`, (tip.tags || []).join('; ')];
         });
         const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
         const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
@@ -1285,7 +1330,7 @@
             filtered = filtered.filter((e) => {
                 const taskMatch = e.task.toLowerCase().includes(query);
                 const tagMatch = (e.tags || []).some((t) => t.toLowerCase().includes(query));
-                const descMatch = (e.description || '').toLowerCase().includes(query);
+                const descMatch = richTextToPlainText(e.description || '').toLowerCase().includes(query);
                 const insightMatch = (e.insights || []).some((i) => {
                     const text = typeof i === 'string' ? i : i.text;
                     return richTextToPlainText(text).toLowerCase().includes(query);
@@ -1319,7 +1364,7 @@
         filtered = filtered.filter((tip) => {
             const titleMatch = tip.title.toLowerCase().includes(query);
             const tagMatch = (tip.tags || []).some((t) => t.toLowerCase().includes(query));
-            const textMatch = (tip.text || '').toLowerCase().includes(query);
+            const textMatch = richTextToPlainText(tip.text || '').toLowerCase().includes(query);
             return titleMatch || tagMatch || textMatch;
         });
         return sortTips(filtered);
@@ -1337,7 +1382,7 @@
                     ${numDisplay}
                 </div>
                 ${tagsHtml ? `<div class="tag-row">${tagsHtml}</div>` : ''}
-                <div class="tip-text">${escHtml(tip.text)}</div>
+                <div class="tip-text">${insightTextToHtml(tip.text)}</div>
             </div>`;
         }).join('');
     }
@@ -1379,7 +1424,7 @@
                         const trig = state.triggers.find((t) => t.id === tid);
                         return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
                     }).join('');
-                    const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
+                    const descHtml = e.description ? `<div class="entry-description">${insightTextToHtml(e.description)}</div>` : '';
                     const insightsHtml = renderInsightsHtml(e.insights || []);
 
                     return `<div class="entry-card">
@@ -1431,7 +1476,7 @@
                         const trig = state.triggers.find((t) => t.id === tid);
                         return trig ? `<span class="trigger-badge" style="background:${trig.color}22;color:${trig.color}">${escHtml(trig.name)}</span>` : '';
                     }).join('');
-                    const descHtml = e.description ? `<div class="entry-description">${escHtml(e.description)}</div>` : '';
+                    const descHtml = e.description ? `<div class="entry-description">${insightTextToHtml(e.description)}</div>` : '';
                     const insightsHtml = renderInsightsHtml(e.insights || []);
 
                     return `<div class="entry-card">
@@ -1502,7 +1547,7 @@
                 const t = state.triggers.find((tr) => tr.id === tid);
                 return t ? t.name : '';
             }).filter(Boolean).join('; ');
-            const row = [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${(e.description || '').replace(/"/g, '""')}"`];
+            const row = [e.date, `"${e.task}"`, proj ? proj.name : '', cat ? cat.name : '', trigNames, (e.tags || []).join('; '), `"${richTextToPlainText(e.description || '').replace(/"/g, '""')}"`];
             const ins = sortedInsightsPerEntry[idx];
             for (let i = 0; i < maxInsights; i++) {
                 const text = ins[i] ? richTextToPlainText(ins[i].text) : '';
@@ -1674,7 +1719,7 @@
         projSel.value = entry.project;
         catSel.value = entry.category;
         $('#edit-tags').value = (entry.tags || []).join(', ');
-        $('#edit-description').value = entry.description || '';
+        setRichTextTextareaValue('#edit-description', entry.description || '');
         clearInsights('edit-insights');
         const ins = entry.insights || [];
         if (ins.length === 0) {
@@ -1712,7 +1757,7 @@
         entry.triggers = getInlineTriggerValues('edit-trigger-select');
         delete entry.trigger;
         entry.tags = $('#edit-tags').value.split(',').map((t) => t.trim()).filter(Boolean);
-        entry.description = $('#edit-description').value.trim();
+        entry.description = getRichTextTextareaValue('#edit-description');
         entry.insights = getInsightValues('edit-insights');
         entry.date = date;
         entry.timestamp = new Date().toISOString();
@@ -1816,13 +1861,14 @@
                         <button onclick="app.cancelTipEdit()">Abbrechen</button>
                     </div>
                 </div>`;
+            setupRichTextTextarea(el.querySelector('.edit-tip-text'));
             el.querySelector('.edit-tip-title').focus();
         },
         saveTip(id) {
             const el = $(`#tip-${id}`);
             const title = el.querySelector('.edit-tip-title').value.trim();
             if (!title) { alert('Bitte eine Überschrift eingeben.'); return; }
-            const text = el.querySelector('.edit-tip-text').value.trim();
+            const text = getRichTextTextareaValue(el.querySelector('.edit-tip-text'));
             const numVal = el.querySelector('.edit-tip-number').value.trim();
             const number = numVal !== '' ? parseInt(numVal, 10) : null;
             if (numVal !== '' && (isNaN(number) || number < 1)) { alert('Bitte eine positive ganze Zahl eingeben.'); return; }
@@ -1860,13 +1906,14 @@
                         <button onclick="app.cancelSettingsTipEdit()">Abbrechen</button>
                     </div>
                 </div>`;
+            setupRichTextTextarea(el.querySelector('.edit-tip-text'));
             el.querySelector('.edit-tip-title').focus();
         },
         saveSettingsTip(id) {
             const el = $(`#settings-tip-${id}`);
             const title = el.querySelector('.edit-tip-title').value.trim();
             if (!title) return;
-            const text = el.querySelector('.edit-tip-text').value.trim();
+            const text = getRichTextTextareaValue(el.querySelector('.edit-tip-text'));
             const numVal = el.querySelector('.edit-tip-number').value.trim();
             const number = numVal !== '' ? parseInt(numVal, 10) : null;
             if (numVal !== '' && (isNaN(number) || number < 1)) { alert('Bitte eine positive ganze Zahl eingeben.'); return; }
@@ -1927,7 +1974,7 @@
                     ${numDisplay}
                 </div>
                 ${tagsHtml ? `<div class="tag-row">${tagsHtml}</div>` : ''}
-                <div class="tip-text">${escHtml(tip.text)}</div>
+                <div class="tip-text">${insightTextToHtml(tip.text)}</div>
                 <div class="tip-actions">
                     <button onclick="app.editTip('${tip.id}')">Bearbeiten</button>
                     <button onclick="app.deleteTip('${tip.id}')">Löschen</button>
@@ -1957,7 +2004,7 @@
     $('#btn-settings-add-tip').addEventListener('click', () => {
         const title = $('#settings-new-tip-title').value.trim();
         if (!title) return;
-        const text = $('#settings-new-tip-text').value.trim();
+        const text = getRichTextTextareaValue('#settings-new-tip-text');
         const numVal = $('#settings-new-tip-number').value.trim();
         const number = numVal !== '' ? parseInt(numVal, 10) : null;
         if (numVal !== '' && (isNaN(number) || number < 1)) { alert('Bitte eine positive ganze Zahl eingeben.'); return; }
@@ -1967,13 +2014,16 @@
         $('#settings-new-tip-title').value = '';
         $('#settings-new-tip-number').value = '';
         $('#settings-new-tip-tags').value = '';
-        $('#settings-new-tip-text').value = '';
+        clearRichTextTextarea('#settings-new-tip-text');
         renderSettingsTips();
     });
 
     // ── Init ──
     load();
     populateSelects();
+    setupRichTextTextarea('#manual-description');
+    setupRichTextTextarea('#edit-description');
+    setupRichTextTextarea('#settings-new-tip-text');
     $('#filter-date').value = todayStr();
 
     if (location.hash === '#search') {

@@ -1811,9 +1811,92 @@ a {
         min-height: 96px;
     }
 
+    .rich-text-toolbar {
+        gap: 5px;
+    }
+
+    .rich-text-btn {
+        width: 32px;
+        min-width: 32px;
+        min-height: 32px;
+        border-radius: 9px;
+        font-size: 0.78rem;
+    }
+
+    .rich-text-editor {
+        padding: 10px 12px;
+        border-radius: 14px;
+        font-size: 0.92rem;
+    }
+
+    .rich-text-editor ul,
+    .rich-text-editor ol,
+    .insight-content ul,
+    .insight-content ol,
+    .entry-description ul,
+    .entry-description ol,
+    .tip-text ul,
+    .tip-text ol {
+        margin-left: 1rem;
+        padding-left: 0.78rem;
+    }
+
+    .rich-text-editor blockquote,
+    .insight-content blockquote,
+    .entry-description blockquote,
+    .tip-text blockquote {
+        margin-left: 1.2rem;
+    }
+
     #tracker .rich-text-editor,
     #edit-modal .rich-text-editor {
         min-height: 62px;
+    }
+
+    #tracker .rich-text-textarea-field .rich-text-editor,
+    #edit-modal .rich-text-textarea-field .rich-text-editor,
+    .settings-tip-add .rich-text-textarea-field .rich-text-editor,
+    .tip-edit-form .rich-text-textarea-field .rich-text-editor,
+    .settings-tip-edit-form .rich-text-textarea-field .rich-text-editor {
+        min-height: 92px;
+    }
+
+    #tracker .insight-row,
+    #edit-modal .insight-row {
+        display: grid;
+        grid-template-columns: 72px 32px minmax(0, 1fr);
+        gap: 8px;
+        align-items: center;
+    }
+
+    #tracker .insight-row .rich-text-field,
+    #edit-modal .insight-row .rich-text-field {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    #tracker .insight-number-input,
+    #edit-modal .insight-number-input {
+        grid-column: 1;
+        width: 72px;
+        min-width: 72px;
+        min-height: 38px;
+    }
+
+    #tracker .btn-remove-insight,
+    #edit-modal .btn-remove-insight {
+        grid-column: 2;
+        width: 32px;
+        min-width: 32px;
+        min-height: 32px;
+        align-self: center;
+    }
+
+    #tracker .btn-add-insight,
+    #edit-modal .btn-add-insight {
+        width: 42px;
+        min-width: 42px;
+        min-height: 42px;
     }
 
     .btn {

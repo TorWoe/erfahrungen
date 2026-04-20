@@ -180,6 +180,7 @@
     }
 
     const richTextAllowedTags = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'BR', 'DIV', 'P', 'UL', 'OL', 'LI']);
+    const richTextAllowedAttributes = new Set(['style']);
 
     function sanitizeRichTextHtml(html) {
         const template = document.createElement('template');
@@ -200,6 +201,11 @@
                 return fragment;
             }
             const element = document.createElement(node.tagName.toLowerCase());
+            Array.from(node.attributes || []).forEach((attr) => {
+                if (richTextAllowedAttributes.has(attr.name.toLowerCase()) && /^margin-left:\s*\d+px;?$/i.test(attr.value.trim())) {
+                    element.setAttribute('style', attr.value.trim());
+                }
+            });
             Array.from(node.childNodes).forEach((child) => {
                 element.appendChild(cleanNode(child));
             });
@@ -393,6 +399,10 @@
             { command: 'bold', label: 'B', title: 'Fett' },
             { command: 'italic', label: 'I', title: 'Kursiv' },
             { command: 'underline', label: 'U', title: 'Unterstreichen' },
+            { command: 'insertUnorderedList', label: '•', title: 'Aufzählung' },
+            { command: 'insertOrderedList', label: '1.', title: 'Nummerierte Liste' },
+            { command: 'outdent', label: '←', title: 'Weniger einrücken' },
+            { command: 'indent', label: '→', title: 'Einrücken' },
         ].forEach(({ command, label, title }) => {
             const formatBtn = document.createElement('button');
             formatBtn.type = 'button';

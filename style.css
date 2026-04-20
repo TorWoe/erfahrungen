@@ -405,9 +405,70 @@ nav {
     align-items: flex-start;
 }
 
-.insight-row textarea {
+.insight-row textarea,
+.rich-text-field {
     flex: 1;
     min-height: 72px;
+}
+
+.rich-text-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.rich-text-toolbar {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.rich-text-btn {
+    width: 34px;
+    min-width: 34px;
+    min-height: 30px;
+    padding: 0;
+    border: 2px solid rgba(205, 146, 141, 0.32);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text);
+    box-shadow: var(--shadow-button-3d);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.rich-text-btn:hover {
+    border-color: rgba(201, 99, 114, 0.38);
+    transform: translateY(-1px);
+}
+
+.rich-text-editor {
+    width: 100%;
+    min-height: 72px;
+    appearance: none;
+    border: 2px solid rgba(205, 146, 141, 0.34);
+    background: var(--surface-strong);
+    color: var(--text);
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    outline: none;
+    font: inherit;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    overflow-y: auto;
+    box-shadow: var(--shadow-input-3d);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.rich-text-editor:empty::before {
+    content: attr(data-placeholder);
+    color: var(--text-faint);
+    pointer-events: none;
 }
 
 .insight-number-input,
@@ -457,8 +518,26 @@ nav {
 }
 
 .entry-insights li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
     margin-bottom: 4px;
     line-height: 1.55;
+}
+
+.insight-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.insight-content p,
+.insight-content div {
+    margin-bottom: 4px;
+}
+
+.insight-content p:last-child,
+.insight-content div:last-child {
+    margin-bottom: 0;
 }
 
 #tracker .eingabe-card {
@@ -492,12 +571,14 @@ nav {
 #tracker select,
 #tracker textarea,
 #tracker .multi-select-toggle,
+#tracker .rich-text-editor,
 #edit-modal input[type="text"],
 #edit-modal input[type="date"],
 #edit-modal input[type="number"],
 #edit-modal select,
 #edit-modal textarea,
-#edit-modal .multi-select-toggle {
+#edit-modal .multi-select-toggle,
+#edit-modal .rich-text-editor {
     border: 2px solid rgba(212, 188, 126, 0.72);
     background: rgba(255, 255, 255, 0.96);
     border-radius: 9px;
@@ -511,7 +592,9 @@ nav {
 }
 
 #tracker textarea,
-#edit-modal textarea {
+#tracker .rich-text-editor,
+#edit-modal textarea,
+#edit-modal .rich-text-editor {
     min-height: 84px;
 }
 
@@ -580,15 +663,19 @@ nav {
 }
 
 #tracker .insight-row {
-    align-items: stretch;
+    align-items: flex-start;
     gap: 8px;
 }
 
-#tracker .insight-row textarea,
-#edit-modal .insight-row textarea {
+#tracker .rich-text-field,
+#edit-modal .rich-text-field {
     flex: 1 1 auto;
     width: auto;
     min-width: 0;
+}
+
+#tracker .rich-text-editor,
+#edit-modal .rich-text-editor {
     min-height: 48px;
 }
 
@@ -734,7 +821,8 @@ input:focus,
 select:focus,
 textarea:focus,
 .multi-select-toggle:focus,
-.edit-name:focus {
+.edit-name:focus,
+.rich-text-editor:focus {
     border-color: rgba(201, 99, 114, 0.44);
     box-shadow:
         0 10px 18px rgba(171, 118, 129, 0.08),
@@ -1665,8 +1753,14 @@ a {
     }
 
     textarea,
-    .insight-row textarea {
+    .insight-row textarea,
+    .rich-text-editor {
         min-height: 96px;
+    }
+
+    #tracker .rich-text-editor,
+    #edit-modal .rich-text-editor {
+        min-height: 62px;
     }
 
     .btn {

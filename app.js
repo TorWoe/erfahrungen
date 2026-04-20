@@ -403,6 +403,7 @@
             { command: 'insertOrderedList', label: '1.', title: 'Nummerierte Liste' },
             { command: 'outdent', label: '←', title: 'Weniger einrücken' },
             { command: 'indent', label: '→', title: 'Einrücken' },
+            { command: 'removeFormat', label: 'Tx', title: 'Formatierung entfernen' },
         ].forEach(({ command, label, title }) => {
             const formatBtn = document.createElement('button');
             formatBtn.type = 'button';

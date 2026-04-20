@@ -476,6 +476,8 @@ nav {
 
 .rich-text-editor li,
 .insight-content li {
+    display: list-item;
+    list-style-position: outside;
     margin-bottom: 4px;
 }
 
@@ -527,11 +529,11 @@ nav {
     color: #66415b;
 }
 
-.entry-insights ul {
+.entry-insights > ul {
     margin-left: 18px;
 }
 
-.entry-insights li {
+.entry-insights > ul > li {
     display: flex;
     align-items: flex-start;
     gap: 8px;

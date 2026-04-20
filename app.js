@@ -241,6 +241,77 @@
             .trim();
     }
 
+    function getClosestElement(node) {
+        if (!node) return null;
+        return node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+    }
+
+    function getSelectedListItems(editor) {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0 || !editor.contains(selection.anchorNode)) return [];
+
+        const range = selection.getRangeAt(0);
+        const items = new Set();
+        editor.querySelectorAll('li').forEach((item) => {
+            try {
+                if (range.intersectsNode(item)) items.add(item);
+            } catch {
+                // Ignore detached or unsupported nodes while editing.
+            }
+        });
+
+        [selection.anchorNode, selection.focusNode].forEach((node) => {
+            const item = getClosestElement(node)?.closest('li');
+            if (item && editor.contains(item)) items.add(item);
+        });
+
+        return Array.from(items).sort((a, b) => {
+            if (a === b) return 0;
+            return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+        });
+    }
+
+    function unwrapSelectedListItems(editor) {
+        const selectedItems = getSelectedListItems(editor);
+        if (selectedItems.length === 0) return false;
+
+        const selectedSet = new Set(selectedItems);
+        const lists = Array.from(new Set(selectedItems.map((item) => item.parentElement))).filter(Boolean);
+
+        lists.forEach((list) => {
+            const replacement = document.createDocumentFragment();
+            let activeList = null;
+
+            Array.from(list.children).forEach((child) => {
+                if (child.tagName === 'LI' && selectedSet.has(child)) {
+                    activeList = null;
+                    const plainLine = document.createElement('div');
+                    plainLine.textContent = richTextToPlainText(child.innerHTML);
+                    replacement.appendChild(plainLine);
+                    return;
+                }
+
+                if (!activeList) {
+                    activeList = document.createElement(list.tagName.toLowerCase());
+                    replacement.appendChild(activeList);
+                }
+                activeList.appendChild(child.cloneNode(true));
+            });
+
+            list.replaceWith(replacement);
+        });
+
+        editor.innerHTML = sanitizeRichTextHtml(editor.innerHTML);
+        return true;
+    }
+
+    function clearRichTextFormatting(editor) {
+        editor.focus();
+        document.execCommand('removeFormat', false, null);
+        unwrapSelectedListItems(editor);
+        editor.innerHTML = sanitizeRichTextHtml(editor.innerHTML);
+    }
+
     // ── DOM refs ──
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => document.querySelectorAll(sel);
@@ -413,7 +484,11 @@
             formatBtn.addEventListener('mousedown', (e) => e.preventDefault());
             formatBtn.addEventListener('click', () => {
                 editor.focus();
-                document.execCommand(command, false, null);
+                if (command === 'removeFormat') {
+                    clearRichTextFormatting(editor);
+                } else {
+                    document.execCommand(command, false, null);
+                }
             });
             toolbar.appendChild(formatBtn);
         });

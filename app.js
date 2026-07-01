@@ -2752,7 +2752,6 @@
         $('#entries').classList.add('active');
         renderEntries();
     } else {
-        clearAppUrlHash();
         initSearchMultiSelects();
         renderSearchCurrentView();
     }

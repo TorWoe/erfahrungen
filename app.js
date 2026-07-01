@@ -2751,6 +2751,13 @@
         $('[data-view="entries"]').classList.add('active');
         $('#entries').classList.add('active');
         renderEntries();
+    } else if (location.hash === '#reports') {
+        clearAppUrlHash();
+        $$('.nav-btn').forEach((b) => b.classList.remove('active'));
+        $$('.view').forEach((v) => v.classList.remove('active'));
+        $('[data-view="reports"]').classList.add('active');
+        $('#reports').classList.add('active');
+        renderReports();
     } else {
         initSearchMultiSelects();
         renderSearchCurrentView();

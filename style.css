@@ -1462,12 +1462,20 @@ input[type="color"],
 }
 
 .tip-toc-link {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
     color: #5c7f71;
+    font: inherit;
     text-decoration: none;
     font-weight: 700;
+    text-align: left;
+    cursor: pointer;
 }
 
-.tip-toc-link:hover {
+.tip-toc-link:hover,
+.tip-toc-link:focus-visible {
     color: #4b6a5e;
 }
 

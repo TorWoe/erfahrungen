@@ -415,9 +415,20 @@
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => document.querySelectorAll(sel);
 
+    function clearAppUrlHash() {
+        if (!location.hash) return;
+        const cleanUrl = `${location.pathname}${location.search}`;
+        if (history.replaceState) {
+            history.replaceState(null, document.title, cleanUrl);
+        } else {
+            location.hash = '';
+        }
+    }
+
     // ── Navigation ──
     $$('.nav-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
+            clearAppUrlHash();
             $$('.nav-btn').forEach((b) => b.classList.remove('active'));
             btn.classList.add('active');
             $$('.view').forEach((v) => v.classList.remove('active'));
@@ -1525,7 +1536,8 @@
     $('#btn-search-reset').addEventListener('click', resetSearchView);
 
     $('#btn-eingabe-reset').addEventListener('click', () => {
-        location.hash = 'tracker';
+        sessionStorage.setItem('erf_reload_view', 'tracker');
+        clearAppUrlHash();
         location.reload();
     });
 
@@ -1962,8 +1974,15 @@
         toc.innerHTML = '<ul class="tips-toc-list">' + sorted.map((tip) => {
             const numPrefix = (tip.number !== null && tip.number !== undefined && tip.number !== '')
                 ? `<span class="tip-toc-number">${escHtml(String(tip.number))}.</span> ` : '';
-            return `<li><a href="#tip-${tip.id}" class="tip-toc-link">${numPrefix}${escHtml(tip.title)}</a></li>`;
+            return `<li><button type="button" class="tip-toc-link" data-tip-id="${tip.id}">${numPrefix}${escHtml(tip.title)}</button></li>`;
         }).join('') + '</ul>';
+        $$('.tip-toc-link').forEach((link) => {
+            link.addEventListener('click', () => {
+                clearAppUrlHash();
+                const target = $(`#tip-${link.dataset.tipId}`);
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
         list.innerHTML = sorted.map((tip) => {
             const numDisplay = (tip.number !== null && tip.number !== undefined && tip.number !== '')
                 ? `<span class="tip-number">${escHtml(String(tip.number))}</span>` : '';
@@ -2026,28 +2045,32 @@
     setupRichTextTextarea('#settings-new-tip-text');
     $('#filter-date').value = todayStr();
 
-    if (location.hash === '#search') {
-        location.hash = '';
+    const reloadView = sessionStorage.getItem('erf_reload_view');
+    sessionStorage.removeItem('erf_reload_view');
+
+    if (reloadView === 'tracker' || location.hash === '#tracker') {
+        clearAppUrlHash();
+        $$('.nav-btn').forEach((b) => b.classList.remove('active'));
+        $$('.view').forEach((v) => v.classList.remove('active'));
+        $('[data-view="tracker"]').classList.add('active');
+        $('#tracker').classList.add('active');
+    } else if (location.hash === '#search') {
+        clearAppUrlHash();
         $$('.nav-btn').forEach((b) => b.classList.remove('active'));
         $$('.view').forEach((v) => v.classList.remove('active'));
         $('[data-view="search"]').classList.add('active');
         $('#search').classList.add('active');
         initSearchMultiSelects();
         renderSearchCurrentView();
-    } else if (location.hash === '#tracker') {
-        location.hash = '';
-        $$('.nav-btn').forEach((b) => b.classList.remove('active'));
-        $$('.view').forEach((v) => v.classList.remove('active'));
-        $('[data-view="tracker"]').classList.add('active');
-        $('#tracker').classList.add('active');
     } else if (location.hash === '#entries') {
-        location.hash = '';
+        clearAppUrlHash();
         $$('.nav-btn').forEach((b) => b.classList.remove('active'));
         $$('.view').forEach((v) => v.classList.remove('active'));
         $('[data-view="entries"]').classList.add('active');
         $('#entries').classList.add('active');
         renderEntries();
     } else {
+        clearAppUrlHash();
         initSearchMultiSelects();
         renderSearchCurrentView();
     }

@@ -336,6 +336,32 @@ header > * {
     background: rgba(254, 242, 242, 0.86);
 }
 
+.app-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    padding: 26px 16px 2px;
+    color: var(--text-soft);
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.app-footer a {
+    color: var(--text-soft);
+    text-decoration: none;
+    transition: color 0.18s ease;
+}
+
+.app-footer a:hover,
+.app-footer a:focus-visible {
+    color: var(--accent-strong);
+    outline: none;
+}
+
 header h1 {
     font-family: "Aptos Display", "Aptos", "Segoe UI", sans-serif;
     font-size: clamp(2.25rem, 4vw, 3.35rem);

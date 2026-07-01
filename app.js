@@ -1,6 +1,35 @@
 (function () {
     'use strict';
 
+    const STORAGE_KEYS = {
+        entries: 'erf_entries',
+        projects: 'erf_projects',
+        categories: 'erf_categories',
+        triggers: 'erf_triggers',
+        tips: 'erf_tips',
+    };
+    const STORAGE_META_KEY = 'erf_sync_meta';
+    const PENDING_LOGIN_KEY = 'erf_onedrive_login_pending';
+    const APP_DATA_FILE_NAMES = {
+        entries: 'erfahrungen-entries.json',
+        settings: 'erfahrungen-settings.json',
+        tips: 'erfahrungen-tipps.json',
+    };
+    const GRAPH_BASE_URL = 'https://graph.microsoft.com/v1.0';
+    const GRAPH_SCOPES = ['User.Read', 'Files.ReadWrite.AppFolder'];
+    const LOGIN_REQUEST = { scopes: GRAPH_SCOPES };
+    const MSAL_CONFIG = {
+        auth: {
+            clientId: '13566a8b-c3c4-4541-a348-5522bc97f6ef',
+            authority: 'https://login.microsoftonline.com/common',
+            redirectUri: window.location.origin + window.location.pathname,
+        },
+        cache: {
+            cacheLocation: 'localStorage',
+            storeAuthStateInCookie: false,
+        },
+    };
+
     // ── State ──
     const state = {
         entries: [],
@@ -8,6 +37,22 @@
         categories: [],
         triggers: [],
         tips: [],
+        localUpdatedAt: '',
+        localHadStoredData: false,
+        sync: {
+            msal: null,
+            account: null,
+            initialized: false,
+            busy: false,
+            resuming: false,
+            status: 'local',
+            title: 'Nicht angemeldet',
+            message: 'Deine Daten werden lokal auf diesem GerÃ¤t gespeichert.',
+            lastRemoteUpdatedAt: '',
+            lastRemoteEtag: '',
+            hasRemoteData: false,
+            conflictData: null,
+        },
         searchShowAll: true,
         reportPeriod: 'year',
         reportOffset: 0,
@@ -16,27 +61,52 @@
     };
 
     // ── LocalStorage ──
+    function saveLocalData(updatedAt = nowIso()) {
+        localStorage.setItem(STORAGE_KEYS.entries, JSON.stringify(state.entries));
+        localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(state.projects));
+        localStorage.setItem(STORAGE_KEYS.categories, JSON.stringify(state.categories));
+        localStorage.setItem(STORAGE_KEYS.triggers, JSON.stringify(state.triggers));
+        localStorage.setItem(STORAGE_KEYS.tips, JSON.stringify(state.tips));
+        localStorage.setItem(STORAGE_META_KEY, JSON.stringify({ updatedAt }));
+        state.localUpdatedAt = updatedAt;
+        return localDataSnapshot(updatedAt);
+    }
+
     function save() {
-        localStorage.setItem('erf_entries', JSON.stringify(state.entries));
-        localStorage.setItem('erf_projects', JSON.stringify(state.projects));
-        localStorage.setItem('erf_categories', JSON.stringify(state.categories));
-        localStorage.setItem('erf_triggers', JSON.stringify(state.triggers));
-        localStorage.setItem('erf_tips', JSON.stringify(state.tips));
+        saveLocalData();
+        state.localHadStoredData = true;
+        queueOneDriveSave();
+    }
+
+    function hasStoredLocalData() {
+        return Boolean(
+            localStorage.getItem(STORAGE_KEYS.entries)
+            || localStorage.getItem(STORAGE_KEYS.projects)
+            || localStorage.getItem(STORAGE_KEYS.categories)
+            || localStorage.getItem(STORAGE_KEYS.triggers)
+            || localStorage.getItem(STORAGE_KEYS.tips)
+            || localStorage.getItem(STORAGE_META_KEY)
+        );
     }
 
     function load() {
+        const hadStoredLocalData = hasStoredLocalData();
+        state.localHadStoredData = hadStoredLocalData;
         try {
-            state.entries = JSON.parse(localStorage.getItem('erf_entries')) || [];
-            state.projects = JSON.parse(localStorage.getItem('erf_projects')) || [];
-            state.categories = JSON.parse(localStorage.getItem('erf_categories')) || [];
-            state.triggers = JSON.parse(localStorage.getItem('erf_triggers')) || [];
-            state.tips = JSON.parse(localStorage.getItem('erf_tips')) || [];
+            state.entries = JSON.parse(localStorage.getItem(STORAGE_KEYS.entries)) || [];
+            state.projects = JSON.parse(localStorage.getItem(STORAGE_KEYS.projects)) || [];
+            state.categories = JSON.parse(localStorage.getItem(STORAGE_KEYS.categories)) || [];
+            state.triggers = JSON.parse(localStorage.getItem(STORAGE_KEYS.triggers)) || [];
+            state.tips = JSON.parse(localStorage.getItem(STORAGE_KEYS.tips)) || [];
+            const meta = JSON.parse(localStorage.getItem(STORAGE_META_KEY) || '{}');
+            state.localUpdatedAt = typeof meta.updatedAt === 'string' ? meta.updatedAt : '';
         } catch {
             state.entries = [];
             state.projects = [];
             state.categories = [];
             state.triggers = [];
             state.tips = [];
+            state.localUpdatedAt = '';
         }
         // Migrate old string[] insights to {text, sortOrder} objects
         state.entries.forEach((entry) => {
@@ -161,7 +231,7 @@
         state.projects.sort((a, b) => a.name.localeCompare(b.name, 'de'));
         state.categories.sort((a, b) => a.name.localeCompare(b.name, 'de'));
         state.triggers.sort((a, b) => a.name.localeCompare(b.name, 'de'));
-        save();
+        saveLocalData(state.localUpdatedAt || nowIso());
     }
 
     // ── Helpers ──
@@ -173,10 +243,602 @@
         return new Date().toISOString().slice(0, 10);
     }
 
+    function nowIso() {
+        return new Date().toISOString();
+    }
+
     function escHtml(str) {
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
+    }
+
+    function localDataSnapshot(updatedAt = state.localUpdatedAt || nowIso()) {
+        return {
+            app: 'erfahrungen',
+            version: 2,
+            updatedAt,
+            entries: Array.isArray(state.entries) ? state.entries : [],
+            projects: Array.isArray(state.projects) ? state.projects : [],
+            categories: Array.isArray(state.categories) ? state.categories : [],
+            triggers: Array.isArray(state.triggers) ? state.triggers : [],
+            tips: Array.isArray(state.tips) ? state.tips : [],
+        };
+    }
+
+    function graphFilePath(fileName) {
+        return `/me/drive/special/approot:/${fileName}`;
+    }
+
+    function graphContentPath(fileName) {
+        return `${graphFilePath(fileName)}:/content`;
+    }
+
+    function latestUpdatedAt(...values) {
+        return values
+            .filter((value) => typeof value === 'string' && value && !Number.isNaN(Date.parse(value)))
+            .sort((a, b) => Date.parse(b) - Date.parse(a))[0] || '';
+    }
+
+    function parseRemoteData(data) {
+        if (!data || typeof data !== 'object') return null;
+        return {
+            app: 'erfahrungen',
+            version: Number(data.version) || 1,
+            updatedAt: typeof data.updatedAt === 'string' ? data.updatedAt : '',
+            entries: Array.isArray(data.entries) ? data.entries : [],
+            projects: Array.isArray(data.projects) ? data.projects : [],
+            categories: Array.isArray(data.categories) ? data.categories : [],
+            triggers: Array.isArray(data.triggers) ? data.triggers : [],
+            tips: Array.isArray(data.tips) ? data.tips : [],
+        };
+    }
+
+    function splitRemoteData(data) {
+        const normalized = parseRemoteData(data) || localDataSnapshot('');
+        return {
+            entries: {
+                app: 'erfahrungen',
+                version: 2,
+                type: 'entries',
+                updatedAt: normalized.updatedAt,
+                entries: normalized.entries,
+            },
+            settings: {
+                app: 'erfahrungen',
+                version: 2,
+                type: 'settings',
+                updatedAt: normalized.updatedAt,
+                projects: normalized.projects,
+                categories: normalized.categories,
+                triggers: normalized.triggers,
+            },
+            tips: {
+                app: 'erfahrungen',
+                version: 2,
+                type: 'tips',
+                updatedAt: normalized.updatedAt,
+                tips: normalized.tips,
+            },
+        };
+    }
+
+    function parseEntriesData(data) {
+        if (!data || typeof data !== 'object') return { updatedAt: '', entries: [] };
+        return {
+            updatedAt: typeof data.updatedAt === 'string' ? data.updatedAt : '',
+            entries: Array.isArray(data.entries) ? data.entries : [],
+        };
+    }
+
+    function parseSettingsData(data) {
+        if (!data || typeof data !== 'object') return { updatedAt: '', projects: [], categories: [], triggers: [] };
+        return {
+            updatedAt: typeof data.updatedAt === 'string' ? data.updatedAt : '',
+            projects: Array.isArray(data.projects) ? data.projects : [],
+            categories: Array.isArray(data.categories) ? data.categories : [],
+            triggers: Array.isArray(data.triggers) ? data.triggers : [],
+        };
+    }
+
+    function parseTipsData(data) {
+        if (!data || typeof data !== 'object') return { updatedAt: '', tips: [] };
+        return {
+            updatedAt: typeof data.updatedAt === 'string' ? data.updatedAt : '',
+            tips: Array.isArray(data.tips) ? data.tips : [],
+        };
+    }
+
+    function composeRemoteData(parts) {
+        const entriesPart = parseEntriesData(parts.entries?.data);
+        const settingsPart = parseSettingsData(parts.settings?.data);
+        const tipsPart = parseTipsData(parts.tips?.data);
+        const updatedAt = latestUpdatedAt(entriesPart.updatedAt, settingsPart.updatedAt, tipsPart.updatedAt);
+        const data = parseRemoteData({
+            app: 'erfahrungen',
+            version: 2,
+            updatedAt,
+            entries: entriesPart.entries,
+            projects: settingsPart.projects,
+            categories: settingsPart.categories,
+            triggers: settingsPart.triggers,
+            tips: tipsPart.tips,
+        });
+        return {
+            exists: Boolean(parts.entries?.exists || parts.settings?.exists || parts.tips?.exists),
+            data,
+            etag: [parts.entries?.etag, parts.settings?.etag, parts.tips?.etag].filter(Boolean).join('|'),
+        };
+    }
+
+    function hasExperienceData(data) {
+        return Boolean(
+            data
+            && (
+                data.entries?.length
+                || data.projects?.length
+                || data.categories?.length
+                || data.triggers?.length
+                || data.tips?.length
+            )
+        );
+    }
+
+    function comparableData(data) {
+        const normalized = parseRemoteData(data) || localDataSnapshot('');
+        return JSON.stringify({
+            entries: normalized.entries,
+            projects: normalized.projects,
+            categories: normalized.categories,
+            triggers: normalized.triggers,
+            tips: normalized.tips,
+        });
+    }
+
+    function sameExperienceData(left, right) {
+        return comparableData(left) === comparableData(right);
+    }
+
+    function remoteIsNewer(remoteUpdatedAt, knownUpdatedAt) {
+        if (!remoteUpdatedAt || !knownUpdatedAt) return false;
+        return Date.parse(remoteUpdatedAt) > Date.parse(knownUpdatedAt);
+    }
+
+    function renderAfterDataChange() {
+        populateSelects();
+        if ($('#entries')?.classList.contains('active')) renderEntries();
+        if ($('#reports')?.classList.contains('active')) renderReports();
+        if ($('#search')?.classList.contains('active')) {
+            initSearchMultiSelects();
+            renderSearchCurrentView();
+        }
+        if ($('#settings')?.classList.contains('active')) renderSettings();
+        if ($('#tips')?.classList.contains('active')) renderTips();
+    }
+
+    function setSyncStatus(status, title, message) {
+        state.sync.status = status;
+        state.sync.title = title;
+        state.sync.message = message;
+        renderSyncStatus();
+    }
+
+    function renderSyncStatus() {
+        const syncButton = $('#syncButton');
+        const authButton = $('#syncAuthButton');
+        const syncPanel = $('#syncPanel');
+        const syncTitle = $('#syncStatusTitle');
+        const syncText = $('#syncStatusText');
+        const syncButtonLabel = $('#syncButtonLabel');
+        if (!syncButton || !authButton || !syncPanel || !syncTitle || !syncText || !syncButtonLabel) return;
+
+        syncButton.dataset.syncStatus = state.sync.status;
+        syncPanel.dataset.syncStatus = state.sync.status;
+        syncTitle.textContent = state.sync.title;
+        const compactStatus = state.sync.status === 'synced';
+        syncText.hidden = compactStatus;
+        syncText.textContent = compactStatus ? '' : state.sync.message;
+        syncPanel.dataset.hasMessage = compactStatus ? 'false' : 'true';
+        syncButton.disabled = state.sync.busy || !state.sync.account;
+        authButton.disabled = state.sync.busy;
+        syncButtonLabel.textContent = state.sync.busy ? 'OneDrive ...' : 'OneDrive Sync';
+        authButton.textContent = state.sync.account ? 'OneDrive Logout' : 'OneDrive Login';
+    }
+
+    function explainAuthError(error) {
+        const text = `${error?.errorCode || ''} ${error?.message || ''}`.toLowerCase();
+        if (text.includes('redirect-started')) return 'Du wirst zu Microsoft weitergeleitet.';
+        if (text.includes('user_cancelled') || text.includes('cancel')) return 'Anmeldung oder Zustimmung wurde abgebrochen.';
+        if (text.includes('consent') || text.includes('access_denied')) return 'Zustimmung verweigert. OneDrive-Sync bleibt ausgeschaltet.';
+        if (text.includes('interaction_required')) return 'Bitte melde dich erneut an, damit OneDrive verwendet werden darf.';
+        return 'Microsoft-Anmeldung fehlgeschlagen. Deine Daten bleiben lokal gespeichert.';
+    }
+
+    function markLoginPending() {
+        localStorage.setItem(PENDING_LOGIN_KEY, String(Date.now()));
+    }
+
+    function clearLoginPending() {
+        localStorage.removeItem(PENDING_LOGIN_KEY);
+    }
+
+    function hasRecentPendingLogin() {
+        const startedAt = Number(localStorage.getItem(PENDING_LOGIN_KEY) || 0);
+        return startedAt > 0 && Date.now() - startedAt < 10 * 60 * 1000;
+    }
+
+    async function resumeOneDriveSession() {
+        if (!state.sync.msal || state.sync.resuming) return;
+        if (state.sync.account && state.sync.status !== 'loading') return;
+        if (!hasRecentPendingLogin() && state.sync.status !== 'loading') return;
+
+        state.sync.resuming = true;
+        state.sync.busy = false;
+        try {
+            const redirectResponse = await state.sync.msal.handleRedirectPromise().catch(() => null);
+            const accounts = state.sync.msal.getAllAccounts();
+            state.sync.account = redirectResponse?.account || accounts[0] || null;
+            if (state.sync.account) {
+                clearLoginPending();
+                state.sync.msal.setActiveAccount(state.sync.account);
+                await syncFromOneDrive();
+            } else if (hasRecentPendingLogin()) {
+                setSyncStatus('loading', 'Microsoft-Anmeldung', 'Die Anmeldung wird geprueft. Falls Microsoft noch offen ist, schliesse den Tab nach der Zustimmung.');
+            }
+        } finally {
+            state.sync.busy = false;
+            state.sync.resuming = false;
+            renderSyncStatus();
+        }
+    }
+
+    function scheduleOneDriveResumeChecks() {
+        [2500, 7000, 14000].forEach((delay) => {
+            setTimeout(() => { void resumeOneDriveSession(); }, delay);
+        });
+    }
+
+    async function getGraphToken() {
+        if (!state.sync.account) throw new Error('not-signed-in');
+        const request = { ...LOGIN_REQUEST, account: state.sync.account };
+        try {
+            const response = await state.sync.msal.acquireTokenSilent(request);
+            return response.accessToken;
+        } catch {
+            setSyncStatus('loading', 'Microsoft-Anmeldung', 'Du wirst zu Microsoft weitergeleitet.');
+            await state.sync.msal.acquireTokenRedirect({ ...request, redirectStartPage: window.location.href });
+            throw new Error('redirect-started');
+        }
+    }
+
+    async function graphFetch(path, options = {}) {
+        const token = await getGraphToken();
+        const response = await fetch(`${GRAPH_BASE_URL}${path}`, {
+            ...options,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                ...(options.headers || {}),
+            },
+        });
+        if (response.status === 404) return null;
+        if (!response.ok) {
+            const detail = await response.text().catch(() => '');
+            const error = new Error(detail || `Graph request failed: ${response.status}`);
+            error.status = response.status;
+            throw error;
+        }
+        return response;
+    }
+
+    async function loadRemoteJsonFile(fileName) {
+        const metadataResponse = await graphFetch(graphFilePath(fileName));
+        if (!metadataResponse) return { exists: false, data: null, etag: '' };
+        const metadata = await metadataResponse.json();
+        const contentResponse = await graphFetch(graphContentPath(fileName), { cache: 'no-store' });
+        if (!contentResponse) return { exists: false, data: null, etag: metadata.eTag || '' };
+        return {
+            exists: true,
+            data: await contentResponse.json(),
+            etag: metadata.eTag || '',
+        };
+    }
+
+    async function uploadRemoteJsonFile(fileName, payload) {
+        const response = await graphFetch(graphContentPath(fileName), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json;charset=utf-8' },
+            body: JSON.stringify(payload, null, 2),
+        });
+        return response ? response.json() : null;
+    }
+
+    async function loadRemoteData() {
+        const [entriesFile, settingsFile, tipsFile] = await Promise.all([
+            loadRemoteJsonFile(APP_DATA_FILE_NAMES.entries),
+            loadRemoteJsonFile(APP_DATA_FILE_NAMES.settings),
+            loadRemoteJsonFile(APP_DATA_FILE_NAMES.tips),
+        ]);
+        return composeRemoteData({
+            entries: entriesFile,
+            settings: settingsFile,
+            tips: tipsFile,
+        });
+    }
+
+    async function uploadRemoteData(payload) {
+        const normalized = parseRemoteData(payload) || localDataSnapshot(nowIso());
+        const split = splitRemoteData(normalized);
+        const [entriesMeta, settingsMeta, tipsMeta] = await Promise.all([
+            uploadRemoteJsonFile(APP_DATA_FILE_NAMES.entries, split.entries),
+            uploadRemoteJsonFile(APP_DATA_FILE_NAMES.settings, split.settings),
+            uploadRemoteJsonFile(APP_DATA_FILE_NAMES.tips, split.tips),
+        ]);
+        return {
+            eTag: [entriesMeta?.eTag, settingsMeta?.eTag, tipsMeta?.eTag].filter(Boolean).join('|'),
+            files: {
+                entries: entriesMeta,
+                settings: settingsMeta,
+                tips: tipsMeta,
+            },
+        };
+    }
+
+    function applyRemoteData(remoteData, remoteEtag = '') {
+        const parsed = parseRemoteData(remoteData);
+        if (!parsed) return;
+        state.entries = parsed.entries;
+        state.projects = parsed.projects;
+        state.categories = parsed.categories;
+        state.triggers = parsed.triggers;
+        state.tips = parsed.tips;
+        saveLocalData(parsed.updatedAt || nowIso());
+        state.localHadStoredData = true;
+        state.sync.lastRemoteUpdatedAt = parsed.updatedAt || state.localUpdatedAt;
+        state.sync.lastRemoteEtag = remoteEtag;
+        state.sync.hasRemoteData = true;
+        state.sync.conflictData = null;
+        renderAfterDataChange();
+    }
+
+    function completeRemoteSave(payload, metadata) {
+        state.sync.lastRemoteUpdatedAt = payload.updatedAt;
+        state.localHadStoredData = true;
+        state.sync.lastRemoteEtag = metadata?.eTag || state.sync.lastRemoteEtag;
+        state.sync.hasRemoteData = true;
+        state.sync.conflictData = null;
+        setSyncStatus('synced', 'Mit OneDrive synchronisiert', 'Deine Erfahrungen-Daten sind im OneDrive-App-Ordner gespeichert.');
+    }
+
+    function handleOneDriveError(error, fallbackTitle = 'OneDrive nicht verfuegbar') {
+        if (error?.message === 'redirect-started') return;
+        if (error?.message === 'not-signed-in') {
+            setSyncStatus('local', 'Nicht angemeldet', 'Deine Daten werden lokal auf diesem Geraet gespeichert.');
+            return;
+        }
+        const message = error?.status === 401 || error?.status === 403
+            ? 'Zugriff auf OneDrive wurde nicht erlaubt. Bitte erneut anmelden.'
+            : 'OneDrive konnte nicht erreicht werden. Lokale Daten bleiben erhalten.';
+        setSyncStatus('error', fallbackTitle, message);
+    }
+
+    async function saveDataToOneDrive() {
+        if (!state.sync.account || state.sync.busy) return;
+        state.sync.busy = true;
+        setSyncStatus('saving', 'Speichere in OneDrive', 'Pruefe zuerst, ob dort neuere Daten liegen.');
+        try {
+            const latest = await loadRemoteData();
+            const local = localDataSnapshot(state.localUpdatedAt || nowIso());
+            if (
+                latest.exists
+                && state.sync.lastRemoteUpdatedAt
+                && remoteIsNewer(latest.data.updatedAt, state.sync.lastRemoteUpdatedAt)
+                && !sameExperienceData(latest.data, local)
+            ) {
+                state.sync.conflictData = latest;
+                state.sync.lastRemoteUpdatedAt = latest.data.updatedAt || state.sync.lastRemoteUpdatedAt;
+                state.sync.lastRemoteEtag = latest.etag || state.sync.lastRemoteEtag;
+                setSyncStatus('conflict', 'Konflikt erkannt', 'OneDrive enthaelt neuere Daten. Es wurde nichts ueberschrieben.');
+                return;
+            }
+
+            const payload = localDataSnapshot(nowIso());
+            saveLocalData(payload.updatedAt);
+            const metadata = await uploadRemoteData(payload);
+            completeRemoteSave(payload, metadata);
+        } catch (error) {
+            handleOneDriveError(error, 'Speichern fehlgeschlagen');
+        } finally {
+            state.sync.busy = false;
+            renderSyncStatus();
+        }
+    }
+
+    let oneDriveSaveTimer;
+    function queueOneDriveSave() {
+        if (!state.sync.account) {
+            setSyncStatus('local', 'Nicht angemeldet', 'Deine Daten werden lokal auf diesem Geraet gespeichert.');
+            return;
+        }
+        clearTimeout(oneDriveSaveTimer);
+        setSyncStatus('saving', 'Speichern vorbereitet', 'Die Aenderung wird gleich mit OneDrive synchronisiert.');
+        oneDriveSaveTimer = setTimeout(() => { void saveDataToOneDrive(); }, 650);
+    }
+
+    async function manualSyncOneDrive() {
+        if (!state.sync.account || state.sync.busy) return;
+        state.sync.busy = true;
+        setSyncStatus('loading', 'Pruefe OneDrive', 'Deine Erfahrungen-Daten werden abgeglichen.');
+        try {
+            const remote = state.sync.conflictData || await loadRemoteData();
+            const local = localDataSnapshot(state.localUpdatedAt || nowIso());
+
+            if (!remote.exists) {
+                if (hasExperienceData(local)) {
+                    const payload = localDataSnapshot(local.updatedAt || nowIso());
+                    const metadata = await uploadRemoteData(payload);
+                    completeRemoteSave(payload, metadata);
+                    setSyncStatus('synced', 'Lokale Daten uebernommen', 'Lokale Daten wurden nach OneDrive uebertragen.');
+                } else {
+                    setSyncStatus('synced', 'Mit OneDrive verbunden', 'Noch keine Erfahrungen-Daten im OneDrive-App-Ordner.');
+                }
+                return;
+            }
+
+            if (sameExperienceData(remote.data, local)) {
+                state.sync.lastRemoteUpdatedAt = remote.data.updatedAt || state.sync.lastRemoteUpdatedAt;
+                state.sync.lastRemoteEtag = remote.etag || state.sync.lastRemoteEtag;
+                state.sync.conflictData = null;
+                setSyncStatus('synced', 'Mit OneDrive synchronisiert', 'Deine Erfahrungen-Daten sind aktuell.');
+                return;
+            }
+
+            if (!state.localHadStoredData || !hasExperienceData(local) || remoteIsNewer(remote.data.updatedAt, local.updatedAt) || state.sync.conflictData) {
+                applyRemoteData(remote.data, remote.etag);
+                setSyncStatus('synced', 'OneDrive-Daten geladen', 'Vorhandene OneDrive-Daten wurden uebernommen.');
+                return;
+            }
+
+            if (remoteIsNewer(local.updatedAt, remote.data.updatedAt)) {
+                const payload = localDataSnapshot(nowIso());
+                saveLocalData(payload.updatedAt);
+                const metadata = await uploadRemoteData(payload);
+                completeRemoteSave(payload, metadata);
+                return;
+            }
+
+            state.sync.conflictData = remote;
+            state.sync.lastRemoteUpdatedAt = remote.data.updatedAt || state.sync.lastRemoteUpdatedAt;
+            state.sync.lastRemoteEtag = remote.etag || state.sync.lastRemoteEtag;
+            setSyncStatus('conflict', 'Unterschiedliche Daten', 'Lokale und OneDrive-Daten unterscheiden sich. Es wurde nichts ueberschrieben.');
+        } catch (error) {
+            handleOneDriveError(error, 'Synchronisieren fehlgeschlagen');
+        } finally {
+            state.sync.busy = false;
+            renderSyncStatus();
+        }
+    }
+
+    async function syncFromOneDrive({ forceRemote = false } = {}) {
+        if (!state.sync.account || state.sync.busy) return;
+        state.sync.busy = true;
+        setSyncStatus('loading', 'Pruefe OneDrive', 'Deine Erfahrungen-Daten werden geladen.');
+        try {
+            const remote = forceRemote && state.sync.conflictData ? state.sync.conflictData : await loadRemoteData();
+            const local = localDataSnapshot(state.localUpdatedAt || nowIso());
+
+            if (!remote.exists) {
+                if (hasExperienceData(local)) {
+                    const payload = localDataSnapshot(local.updatedAt || nowIso());
+                    const metadata = await uploadRemoteData(payload);
+                    completeRemoteSave(payload, metadata);
+                    setSyncStatus('synced', 'Lokale Daten uebernommen', 'Vorhandene lokale Daten wurden nach OneDrive uebertragen.');
+                } else {
+                    state.sync.hasRemoteData = false;
+                    setSyncStatus('synced', 'Mit OneDrive verbunden', 'Noch keine Erfahrungen-Daten im OneDrive-App-Ordner.');
+                }
+                return;
+            }
+
+            if (forceRemote || sameExperienceData(remote.data, local) || !state.localHadStoredData || !hasExperienceData(local) || remoteIsNewer(remote.data.updatedAt, local.updatedAt)) {
+                applyRemoteData(remote.data, remote.etag);
+                setSyncStatus('synced', 'Mit OneDrive synchronisiert', 'Deine Erfahrungen-Daten wurden aus OneDrive geladen.');
+                return;
+            }
+
+            state.sync.lastRemoteUpdatedAt = remote.data.updatedAt || '';
+            state.sync.lastRemoteEtag = remote.etag || '';
+            state.sync.hasRemoteData = true;
+            state.sync.conflictData = remote;
+            setSyncStatus('conflict', 'Unterschiedliche Daten', 'Lokale und OneDrive-Daten unterscheiden sich. Es wurde nichts ueberschrieben.');
+        } catch (error) {
+            handleOneDriveError(error);
+        } finally {
+            state.sync.busy = false;
+            renderSyncStatus();
+        }
+    }
+
+    async function loginToOneDrive() {
+        if (!state.sync.msal || state.sync.busy) return;
+        state.sync.busy = true;
+        markLoginPending();
+        scheduleOneDriveResumeChecks();
+        setSyncStatus('loading', 'Microsoft-Anmeldung', 'Du wirst zu Microsoft weitergeleitet.');
+        try {
+            await state.sync.msal.loginRedirect({ ...LOGIN_REQUEST, redirectStartPage: window.location.href });
+        } catch (error) {
+            setSyncStatus('error', 'Anmeldung fehlgeschlagen', explainAuthError(error));
+        } finally {
+            state.sync.busy = false;
+            renderSyncStatus();
+        }
+    }
+
+    async function logoutFromOneDrive() {
+        if (!state.sync.msal || state.sync.busy) return;
+        state.sync.busy = true;
+        clearLoginPending();
+        setSyncStatus('loading', 'Microsoft-Abmeldung', 'Du wirst von OneDrive abgemeldet.');
+        try {
+            const account = state.sync.account || state.sync.msal.getActiveAccount?.();
+            state.sync.account = null;
+            state.sync.lastRemoteUpdatedAt = '';
+            state.sync.lastRemoteEtag = '';
+            state.sync.hasRemoteData = false;
+            state.sync.conflictData = null;
+            if (account) {
+                await state.sync.msal.logoutRedirect({
+                    account,
+                    postLogoutRedirectUri: MSAL_CONFIG.auth.redirectUri,
+                });
+            } else {
+                setSyncStatus('local', 'Nicht angemeldet', 'Deine Daten werden lokal auf diesem Geraet gespeichert.');
+            }
+        } catch {
+            setSyncStatus('error', 'Abmeldung fehlgeschlagen', 'Microsoft-Abmeldung konnte nicht abgeschlossen werden.');
+        } finally {
+            state.sync.busy = false;
+            renderSyncStatus();
+        }
+    }
+
+    async function initializeOneDrive() {
+        renderSyncStatus();
+        if (!window.msal?.PublicClientApplication) {
+            setSyncStatus('error', 'OneDrive nicht verfuegbar', 'MSAL.js konnte nicht geladen werden. Lokale Speicherung bleibt aktiv.');
+            return;
+        }
+
+        try {
+            state.sync.msal = new window.msal.PublicClientApplication(MSAL_CONFIG);
+            if (typeof state.sync.msal.initialize === 'function') {
+                await state.sync.msal.initialize();
+            }
+            const redirectResponse = await state.sync.msal.handleRedirectPromise();
+            const accounts = state.sync.msal.getAllAccounts();
+            state.sync.account = redirectResponse?.account || accounts[0] || null;
+            if (state.sync.account) {
+                clearLoginPending();
+                state.sync.msal.setActiveAccount(state.sync.account);
+                await syncFromOneDrive();
+            } else {
+                setSyncStatus('local', 'Nicht angemeldet', 'Deine Daten werden lokal auf diesem Geraet gespeichert. Melde dich an, um OneDrive zu nutzen.');
+            }
+        } catch (error) {
+            const accounts = state.sync.msal?.getAllAccounts?.() || [];
+            state.sync.account = accounts[0] || null;
+            if (state.sync.account) {
+                clearLoginPending();
+                state.sync.msal.setActiveAccount(state.sync.account);
+                setSyncStatus('loading', 'Microsoft-Anmeldung erkannt', 'OneDrive wird erneut geprueft.');
+                await syncFromOneDrive();
+            } else {
+                setSyncStatus('error', 'Anmeldung fehlgeschlagen', explainAuthError(error));
+            }
+        } finally {
+            state.sync.initialized = true;
+            renderSyncStatus();
+        }
     }
 
     const richTextAllowedTags = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'BR', 'DIV', 'P', 'UL', 'OL', 'LI', 'BLOCKQUOTE']);
@@ -2038,6 +2700,26 @@
     });
 
     // ── Init ──
+    $('#syncButton')?.addEventListener('click', () => {
+        if (state.sync.conflictData) {
+            void syncFromOneDrive({ forceRemote: true });
+            return;
+        }
+        if (state.sync.account) {
+            void manualSyncOneDrive();
+        } else {
+            setSyncStatus('local', 'Nicht angemeldet', 'Bitte melde dich zuerst mit OneDrive an.');
+        }
+    });
+
+    $('#syncAuthButton')?.addEventListener('click', () => {
+        if (state.sync.account) {
+            void logoutFromOneDrive();
+        } else {
+            void loginToOneDrive();
+        }
+    });
+
     load();
     populateSelects();
     setupRichTextTextarea('#manual-description');
@@ -2074,4 +2756,5 @@
         initSearchMultiSelects();
         renderSearchCurrentView();
     }
+    void initializeOneDrive();
 })();

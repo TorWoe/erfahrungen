@@ -241,6 +241,11 @@ header > * {
     opacity: 0.65;
 }
 
+.sync-button[data-busy="true"] {
+    cursor: pointer;
+    opacity: 0.78;
+}
+
 .sync-caret {
     font-size: 0.74rem;
     line-height: 1;

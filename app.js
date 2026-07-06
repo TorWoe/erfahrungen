@@ -9,7 +9,7 @@
         tips: 'erf_tips',
     };
     const STORAGE_META_KEY = 'erf_sync_meta';
-    const APP_VERSION = 'onedrive-sync-cache-20260706-main-1';
+    const APP_VERSION = 'onedrive-sync-menu-20260706-1';
     const APP_VERSION_FILE = 'app-version.json';
     const APP_REFRESH_PARAM = 'appRefresh';
     const APP_REFRESH_SESSION_KEY = 'erf_app_refresh_version';
@@ -456,7 +456,10 @@
         syncText.hidden = compactStatus;
         syncText.textContent = compactStatus ? '' : state.sync.message;
         syncPanel.dataset.hasMessage = compactStatus ? 'false' : 'true';
-        syncButton.disabled = state.sync.busy;
+        const authBusy = isOneDriveAuthInProgress();
+        if (authBusy) setSyncMenuOpen(true);
+        syncButton.disabled = false;
+        syncButton.dataset.busy = state.sync.busy ? 'true' : 'false';
         syncButton.setAttribute('aria-expanded', syncMenu?.dataset.open === 'true' ? 'true' : 'false');
         syncButtonLabel.textContent = getSyncMenuText();
 
@@ -467,12 +470,12 @@
                 : 'OneDrive anmelden';
         }
         if (syncMenuRenew) {
-            syncMenuRenew.hidden = !state.sync.account;
-            syncMenuRenew.disabled = state.sync.busy;
+            syncMenuRenew.hidden = !(state.sync.account || authBusy || state.sync.needsInteractiveToken);
+            syncMenuRenew.disabled = !state.sync.msal;
         }
         if (syncMenuLogout) {
-            syncMenuLogout.hidden = !state.sync.account;
-            syncMenuLogout.disabled = state.sync.busy;
+            syncMenuLogout.hidden = !(state.sync.account || authBusy);
+            syncMenuLogout.disabled = false;
         }
     }
 
@@ -482,6 +485,10 @@
         if (state.sync.account && state.sync.status === 'conflict') return 'OneDrive Konflikt';
         if (state.sync.account) return 'OneDrive Sync';
         return 'OneDrive Login';
+    }
+
+    function isOneDriveAuthInProgress() {
+        return state.sync.status === 'loading' && state.sync.title.includes('Microsoft-Anmeldung');
     }
 
     function explainAuthError(error) {
@@ -568,11 +575,15 @@
     }
 
     function closeSyncMenu() {
+        setSyncMenuOpen(false);
+    }
+
+    function setSyncMenuOpen(open) {
         const syncMenu = $('#syncMenu');
         const syncButton = $('#syncButton');
         if (!syncMenu) return;
-        syncMenu.dataset.open = 'false';
-        syncButton?.setAttribute('aria-expanded', 'false');
+        syncMenu.dataset.open = open ? 'true' : 'false';
+        syncButton?.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
 
     function toggleSyncMenu() {
@@ -580,19 +591,20 @@
         const syncButton = $('#syncButton');
         if (!syncMenu || syncButton?.disabled) return;
         const open = syncMenu.dataset.open === 'true';
-        syncMenu.dataset.open = open ? 'false' : 'true';
-        syncButton?.setAttribute('aria-expanded', open ? 'false' : 'true');
+        setSyncMenuOpen(!open);
     }
 
     function runOneDrivePrimaryAction() {
-        closeSyncMenu();
         if (state.sync.conflictData) {
+            closeSyncMenu();
             void syncFromOneDrive({ forceRemote: true });
             return;
         }
         if (state.sync.account) {
+            closeSyncMenu();
             void manualSyncOneDrive();
         } else {
+            setSyncMenuOpen(true);
             void loginToOneDrive();
         }
     }
@@ -878,6 +890,7 @@
 
     async function loginToOneDrive() {
         if (!state.sync.msal || state.sync.busy) return;
+        setSyncMenuOpen(true);
         state.sync.busy = true;
         setManualLogout(false);
         setSyncStatus('loading', 'Microsoft-Anmeldung', 'Du wirst zu Microsoft weitergeleitet.');
@@ -892,7 +905,8 @@
     }
 
     async function logoutFromOneDrive() {
-        if (!state.sync.msal || state.sync.busy) return;
+        if (!state.sync.msal) return;
+        clearTimeout(oneDriveSaveTimer);
         state.sync.busy = true;
         setManualLogout(true);
         setSyncStatus('loading', 'Microsoft-Abmeldung', 'Du wirst von OneDrive abgemeldet.');
@@ -923,8 +937,9 @@
     }
 
     async function renewOneDriveLogin() {
-        if (!state.sync.msal || state.sync.busy) return;
-        closeSyncMenu();
+        if (!state.sync.msal) return;
+        clearTimeout(oneDriveSaveTimer);
+        setSyncMenuOpen(true);
         state.sync.busy = true;
         state.sync.allowInteractiveTokenRedirect = true;
         state.sync.needsInteractiveToken = false;

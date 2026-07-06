@@ -1087,6 +1087,31 @@
         }
     }
 
+    function closeLegalModal() {
+        const modal = $('#legal-modal');
+        if (modal) modal.hidden = true;
+    }
+
+    async function openLegalModal(path, title) {
+        const modal = $('#legal-modal');
+        const titleEl = $('#legal-modal-title');
+        const bodyEl = $('#legal-modal-body');
+        if (!modal || !titleEl || !bodyEl || !path) return;
+
+        titleEl.textContent = title || 'Rechtliches';
+        bodyEl.textContent = 'Wird geladen...';
+        modal.hidden = false;
+        clearAppUrlHash();
+
+        try {
+            const response = await fetch(path, { cache: 'no-cache' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            bodyEl.textContent = await response.text();
+        } catch {
+            bodyEl.textContent = 'Der rechtliche Text konnte nicht geladen werden.';
+        }
+    }
+
     // ── Navigation ──
     $$('.nav-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -2452,6 +2477,16 @@
             $('#edit-modal').hidden = true;
             editingEntryId = null;
         }
+    });
+    $('#legal-modal-close')?.addEventListener('click', closeLegalModal);
+    $('#legal-modal')?.addEventListener('click', (event) => {
+        if (event.target === $('#legal-modal')) closeLegalModal();
+    });
+    $$('.app-footer a[data-legal-path]').forEach((link) => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            void openLegalModal(link.dataset.legalPath, link.dataset.legalTitle);
+        });
     });
 
     window.app = {

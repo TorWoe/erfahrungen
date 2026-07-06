@@ -9,15 +9,13 @@
         tips: 'erf_tips',
     };
     const STORAGE_META_KEY = 'erf_sync_meta';
-    const APP_VERSION = 'onedrive-sync-menu-20260706-1';
+    const APP_VERSION = 'onedrive-sync-renew-reload-20260706-1';
     const APP_VERSION_FILE = 'app-version.json';
     const APP_REFRESH_PARAM = 'appRefresh';
     const APP_REFRESH_SESSION_KEY = 'erf_app_refresh_version';
     const LEGACY_PENDING_LOGIN_KEY = 'erf_onedrive_login_pending';
     const MANUAL_LOGOUT_KEY = 'erf_onedrive_manual_logout';
     const AUTH_RELOAD_PARAM = 'authReload';
-    const AUTH_RELOAD_SESSION_KEY = 'erf_onedrive_auth_reload';
-    const AUTH_RELOAD_MAX_AGE_MS = 90 * 1000;
     const REDIRECT_TOKEN_TTL_MS = 55 * 60 * 1000;
     const APP_DATA_FILE_NAMES = {
         entries: 'erfahrungen-entries.json',
@@ -513,23 +511,52 @@
         return localStorage.getItem(MANUAL_LOGOUT_KEY) === '1';
     }
 
-    function rememberAuthReload() {
-        sessionStorage.setItem(AUTH_RELOAD_SESSION_KEY, JSON.stringify({
-            startedAt: Date.now(),
-            version: APP_VERSION,
-        }));
+    function clearStaleMsalInteractionStatus() {
+        [localStorage, sessionStorage].forEach((storage) => {
+            for (let index = storage.length - 1; index >= 0; index -= 1) {
+                const key = storage.key(index) || '';
+                const isMsalInteractionKey = key.includes('interaction.status')
+                    && (key.includes(MSAL_CONFIG.auth.clientId) || key.startsWith('msal.'));
+                if (isMsalInteractionKey) storage.removeItem(key);
+            }
+        });
     }
 
-    function readAuthReload() {
+    function isInteractionInProgressError(error) {
+        const text = `${error?.errorCode || ''} ${error?.message || ''}`.toLowerCase();
+        return text.includes('interaction_in_progress');
+    }
+
+    async function redirectWithFreshInteraction(startRedirect) {
         try {
-            return JSON.parse(sessionStorage.getItem(AUTH_RELOAD_SESSION_KEY) || '{}');
-        } catch {
-            return {};
+            await startRedirect();
+        } catch (error) {
+            if (!isInteractionInProgressError(error)) throw error;
+            clearStaleMsalInteractionStatus();
+            await startRedirect();
         }
     }
 
+    function hasOneDriveRedirectResponse() {
+        const queryParams = new URLSearchParams(window.location.search);
+        const hashText = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+        const hashParams = new URLSearchParams(hashText);
+        return ['code', 'error', 'state', 'client_info'].some((key) => queryParams.has(key) || hashParams.has(key));
+    }
+
+    function clearOneDriveRedirectResponseUrl() {
+        if (!hasOneDriveRedirectResponse()) return;
+        const url = new URL(window.location.href);
+        ['code', 'error', 'error_description', 'state', 'client_info', 'session_state'].forEach((key) => url.searchParams.delete(key));
+        const hashText = url.hash.startsWith('#') ? url.hash.slice(1) : url.hash;
+        const hashParams = new URLSearchParams(hashText);
+        const hasAuthHash = ['code', 'error', 'state', 'client_info'].some((key) => hashParams.has(key));
+        if (hasAuthHash) url.hash = '';
+        history.replaceState(null, document.title, `${url.pathname}${url.search}${url.hash}`);
+    }
+
     function clearAuthReloadState() {
-        sessionStorage.removeItem(AUTH_RELOAD_SESSION_KEY);
+        sessionStorage.removeItem('erf_onedrive_auth_reload');
     }
 
     function clearAuthReloadParam() {
@@ -537,24 +564,6 @@
         if (!url.searchParams.has(AUTH_RELOAD_PARAM)) return;
         url.searchParams.delete(AUTH_RELOAD_PARAM);
         history.replaceState(null, document.title, `${url.pathname}${url.search}${url.hash}`);
-    }
-
-    function redirectForAuthReload() {
-        rememberAuthReload();
-        const url = new URL(window.location.href);
-        url.searchParams.set(AUTH_RELOAD_PARAM, APP_VERSION);
-        window.location.replace(url.toString());
-    }
-
-    function shouldResumeAuthAfterReload() {
-        const url = new URL(window.location.href);
-        const authParam = url.searchParams.get(AUTH_RELOAD_PARAM);
-        const stored = readAuthReload();
-        const startedAt = Number(stored.startedAt || 0);
-        return authParam === APP_VERSION
-            && stored.version === APP_VERSION
-            && startedAt > 0
-            && Date.now() - startedAt < AUTH_RELOAD_MAX_AGE_MS;
     }
 
     function rememberRedirectToken(response) {
@@ -622,7 +631,8 @@
             if (state.sync.allowInteractiveTokenRedirect) {
                 state.sync.allowInteractiveTokenRedirect = false;
                 setSyncStatus('loading', 'Microsoft-Anmeldung', 'Du wirst zu Microsoft weitergeleitet.');
-                await state.sync.msal.acquireTokenRedirect({ ...request, redirectStartPage: window.location.href });
+                clearStaleMsalInteractionStatus();
+                await redirectWithFreshInteraction(() => state.sync.msal.acquireTokenRedirect({ ...request, redirectStartPage: window.location.href }));
                 throw new Error('redirect-started');
             }
             throw error;
@@ -893,9 +903,10 @@
         setSyncMenuOpen(true);
         state.sync.busy = true;
         setManualLogout(false);
+        clearStaleMsalInteractionStatus();
         setSyncStatus('loading', 'Microsoft-Anmeldung', 'Du wirst zu Microsoft weitergeleitet.');
         try {
-            await state.sync.msal.loginRedirect({ ...LOGIN_REQUEST, redirectStartPage: window.location.href });
+            await redirectWithFreshInteraction(() => state.sync.msal.loginRedirect({ ...LOGIN_REQUEST, redirectStartPage: window.location.href }));
         } catch (error) {
             setSyncStatus('error', 'Anmeldung fehlgeschlagen', explainAuthError(error));
         } finally {
@@ -936,29 +947,10 @@
         }
     }
 
-    async function renewOneDriveLogin() {
-        if (!state.sync.msal) return;
-        clearTimeout(oneDriveSaveTimer);
-        setSyncMenuOpen(true);
-        state.sync.busy = true;
-        state.sync.allowInteractiveTokenRedirect = true;
-        state.sync.needsInteractiveToken = false;
-        setManualLogout(false);
-        setSyncStatus('loading', 'Microsoft-Anmeldung', 'Du wirst zu Microsoft weitergeleitet.');
-        try {
-            const account = state.sync.account || state.sync.msal.getActiveAccount?.();
-            if (account) {
-                await state.sync.msal.acquireTokenRedirect({ ...LOGIN_REQUEST, account, redirectStartPage: window.location.href });
-            } else {
-                await state.sync.msal.loginRedirect({ ...LOGIN_REQUEST, redirectStartPage: window.location.href });
-            }
-        } catch (error) {
-            state.sync.allowInteractiveTokenRedirect = false;
-            setSyncStatus('error', 'Anmeldung fehlgeschlagen', explainAuthError(error));
-        } finally {
-            state.sync.busy = false;
-            renderSyncStatus();
-        }
+    function renewOneDriveLogin(event) {
+        event?.preventDefault();
+        event?.stopPropagation();
+        location.reload();
     }
 
     async function fetchLatestAppVersion() {
@@ -973,6 +965,7 @@
     }
 
     async function ensureLatestAppVersion() {
+        if (hasOneDriveRedirectResponse()) return;
         const latestVersion = await fetchLatestAppVersion();
         if (!latestVersion || latestVersion === APP_VERSION) return;
         if (sessionStorage.getItem(APP_REFRESH_SESSION_KEY) === latestVersion) return;
@@ -994,22 +987,25 @@
             if (typeof state.sync.msal.initialize === 'function') {
                 await state.sync.msal.initialize();
             }
+            if (isManualLogoutActive()) {
+                clearAuthReloadState();
+                clearStaleMsalInteractionStatus();
+                state.sync.account = null;
+                state.sync.allowInteractiveTokenRedirect = false;
+                state.sync.msal.setActiveAccount?.(null);
+                setSyncStatus('local', 'Nicht angemeldet', 'Deine Daten werden lokal auf diesem Geraet gespeichert.');
+                return;
+            }
             const redirectResponse = await state.sync.msal.handleRedirectPromise();
             rememberRedirectToken(redirectResponse);
+            clearOneDriveRedirectResponseUrl();
             const accounts = state.sync.msal.getAllAccounts();
             state.sync.account = redirectResponse?.account || accounts[0] || null;
             if (state.sync.account) {
                 clearAuthReloadState();
-                clearAuthReloadParam();
                 setManualLogout(false);
                 state.sync.msal.setActiveAccount(state.sync.account);
                 await syncFromOneDrive();
-            } else if (shouldResumeAuthAfterReload() && !isManualLogoutActive()) {
-                clearAuthReloadState();
-                clearAuthReloadParam();
-                await loginToOneDrive();
-            } else if (!isManualLogoutActive()) {
-                redirectForAuthReload();
             } else {
                 setSyncStatus('local', 'Nicht angemeldet', 'Deine Daten werden lokal auf diesem Geraet gespeichert. Melde dich an, um OneDrive zu nutzen.');
             }
@@ -2926,7 +2922,7 @@
     // ── Init ──
     $('#syncButton')?.addEventListener('click', toggleSyncMenu);
     $('#syncMenuPrimary')?.addEventListener('click', runOneDrivePrimaryAction);
-    $('#syncMenuRenew')?.addEventListener('click', () => { void renewOneDriveLogin(); });
+    $('#syncMenuRenew')?.addEventListener('click', renewOneDriveLogin);
     $('#syncMenuLogout')?.addEventListener('click', () => {
         closeSyncMenu();
         void logoutFromOneDrive();
@@ -2940,6 +2936,7 @@
 
     async function initialize() {
         await ensureLatestAppVersion();
+        clearAuthReloadParam();
         load();
         populateSelects();
         setupRichTextTextarea('#manual-description');

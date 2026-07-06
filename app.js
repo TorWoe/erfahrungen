@@ -9,13 +9,14 @@
         tips: 'erf_tips',
     };
     const STORAGE_META_KEY = 'erf_sync_meta';
-    const APP_VERSION = 'onedrive-sync-renew-reload-20260706-1';
+    const APP_VERSION = 'onedrive-sync-logout-reload-20260706-1';
     const APP_VERSION_FILE = 'app-version.json';
     const APP_REFRESH_PARAM = 'appRefresh';
     const APP_REFRESH_SESSION_KEY = 'erf_app_refresh_version';
     const LEGACY_PENDING_LOGIN_KEY = 'erf_onedrive_login_pending';
     const MANUAL_LOGOUT_KEY = 'erf_onedrive_manual_logout';
     const AUTH_RELOAD_PARAM = 'authReload';
+    const AUTH_LOGOUT_PARAM = 'onedriveLogout';
     const REDIRECT_TOKEN_TTL_MS = 55 * 60 * 1000;
     const APP_DATA_FILE_NAMES = {
         entries: 'erfahrungen-entries.json',
@@ -522,6 +523,51 @@
         });
     }
 
+    function clearOneDriveMsalCache() {
+        const clientId = MSAL_CONFIG.auth.clientId.toLowerCase();
+        const looksLikeMsalValue = (value) => {
+            if (!value || value[0] !== '{') return false;
+            try {
+                const parsed = JSON.parse(value);
+                return Boolean(
+                    parsed.clientId === MSAL_CONFIG.auth.clientId
+                    || parsed.homeAccountId
+                    || parsed.localAccountId
+                    || parsed.credentialType
+                    || parsed.authorityType
+                    || parsed.environment === 'login.windows.net'
+                    || parsed.environment === 'login.microsoftonline.com'
+                );
+            } catch {
+                return false;
+            }
+        };
+        [localStorage, sessionStorage].forEach((storage) => {
+            for (let index = storage.length - 1; index >= 0; index -= 1) {
+                const key = storage.key(index) || '';
+                const normalizedKey = key.toLowerCase();
+                const value = storage.getItem(key) || '';
+                const isMsalKey = normalizedKey.startsWith('msal.')
+                    || normalizedKey.includes(clientId)
+                    || normalizedKey.includes('login.microsoftonline.com')
+                    || normalizedKey.includes('login.windows.net');
+                if (isMsalKey || looksLikeMsalValue(value)) storage.removeItem(key);
+            }
+        });
+    }
+
+    function clearOneDriveMsalCookies() {
+        const clientId = MSAL_CONFIG.auth.clientId.toLowerCase();
+        document.cookie.split(';').forEach((cookie) => {
+            const name = cookie.split('=')[0]?.trim();
+            if (!name) return;
+            const normalizedName = name.toLowerCase();
+            if (!normalizedName.startsWith('msal.') && !normalizedName.includes(clientId)) return;
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+            document.cookie = `${name}=; max-age=0; path=/; SameSite=Lax`;
+        });
+    }
+
     function isInteractionInProgressError(error) {
         const text = `${error?.errorCode || ''} ${error?.message || ''}`.toLowerCase();
         return text.includes('interaction_in_progress');
@@ -561,9 +607,25 @@
 
     function clearAuthReloadParam() {
         const url = new URL(window.location.href);
-        if (!url.searchParams.has(AUTH_RELOAD_PARAM)) return;
+        const hasAuthParam = url.searchParams.has(AUTH_RELOAD_PARAM)
+            || url.searchParams.has(AUTH_LOGOUT_PARAM)
+            || url.searchParams.has(APP_REFRESH_PARAM);
+        if (!hasAuthParam) return;
         url.searchParams.delete(AUTH_RELOAD_PARAM);
+        url.searchParams.delete(AUTH_LOGOUT_PARAM);
+        url.searchParams.delete(APP_REFRESH_PARAM);
         history.replaceState(null, document.title, `${url.pathname}${url.search}${url.hash}`);
+    }
+
+    function forceOneDriveLogoutReload() {
+        const refreshUrl = new URL(window.location.href);
+        refreshUrl.hash = '';
+        refreshUrl.searchParams.delete(AUTH_RELOAD_PARAM);
+        refreshUrl.searchParams.set(AUTH_LOGOUT_PARAM, String(Date.now()));
+        window.location.replace(refreshUrl.toString());
+        setTimeout(() => {
+            if (window.location.href !== refreshUrl.toString()) window.location.href = refreshUrl.toString();
+        }, 250);
     }
 
     function rememberRedirectToken(response) {
@@ -915,35 +977,51 @@
         }
     }
 
-    async function logoutFromOneDrive() {
-        if (!state.sync.msal) return;
+    function logoutFromOneDrive(event) {
+        event?.preventDefault();
+        event?.stopPropagation();
         clearTimeout(oneDriveSaveTimer);
-        state.sync.busy = true;
         setManualLogout(true);
-        setSyncStatus('loading', 'Microsoft-Abmeldung', 'Du wirst von OneDrive abgemeldet.');
+        if (!state.sync.msal) {
+            forceOneDriveLogoutReload();
+            return;
+        }
+        if (state.sync.busy) state.sync.busy = false;
+        state.sync.busy = true;
+        setSyncStatus('loading', 'Microsoft-Abmeldung', 'Die Verbindung zu OneDrive wird lokal getrennt.');
         try {
-            const account = state.sync.account || state.sync.msal.getActiveAccount?.();
+            const account = state.sync.account
+                || state.sync.msal.getActiveAccount?.()
+                || state.sync.msal.getAllAccounts?.()?.[0];
+            clearAuthReloadState();
+            clearStaleMsalInteractionStatus();
+            clearOneDriveMsalCache();
+            clearOneDriveMsalCookies();
             state.sync.account = null;
             state.sync.needsInteractiveToken = false;
             state.sync.redirectAccessToken = '';
             state.sync.redirectAccessTokenExpiresAt = 0;
+            state.sync.allowInteractiveTokenRedirect = false;
             state.sync.lastRemoteUpdatedAt = '';
             state.sync.lastRemoteEtag = '';
             state.sync.hasRemoteData = false;
             state.sync.conflictData = null;
-            if (account) {
-                await state.sync.msal.logoutRedirect({
-                    account,
-                    postLogoutRedirectUri: MSAL_CONFIG.auth.redirectUri,
-                });
-            } else {
-                setSyncStatus('local', 'Nicht angemeldet', 'Deine Daten werden lokal auf diesem Geraet gespeichert.');
+            state.sync.msal.setActiveAccount?.(null);
+            if (state.sync.msal.clearCache) {
+                Promise.resolve(state.sync.msal.clearCache(account ? { account } : {})).catch(() => {});
             }
-        } catch {
-            setSyncStatus('error', 'Abmeldung fehlgeschlagen', 'Microsoft-Abmeldung konnte nicht abgeschlossen werden.');
-        } finally {
             state.sync.busy = false;
-            renderSyncStatus();
+            setSyncStatus('local', 'Nicht angemeldet', 'Deine Daten werden lokal auf diesem Geraet gespeichert.');
+            forceOneDriveLogoutReload();
+        } catch {
+            clearAuthReloadState();
+            clearStaleMsalInteractionStatus();
+            clearOneDriveMsalCache();
+            clearOneDriveMsalCookies();
+            state.sync.account = null;
+            state.sync.busy = false;
+            setSyncStatus('local', 'Nicht angemeldet', 'Deine Daten werden lokal auf diesem Geraet gespeichert.');
+            forceOneDriveLogoutReload();
         }
     }
 
@@ -990,6 +1068,8 @@
             if (isManualLogoutActive()) {
                 clearAuthReloadState();
                 clearStaleMsalInteractionStatus();
+                clearOneDriveMsalCache();
+                clearOneDriveMsalCookies();
                 state.sync.account = null;
                 state.sync.allowInteractiveTokenRedirect = false;
                 state.sync.msal.setActiveAccount?.(null);
@@ -2923,9 +3003,9 @@
     $('#syncButton')?.addEventListener('click', toggleSyncMenu);
     $('#syncMenuPrimary')?.addEventListener('click', runOneDrivePrimaryAction);
     $('#syncMenuRenew')?.addEventListener('click', renewOneDriveLogin);
-    $('#syncMenuLogout')?.addEventListener('click', () => {
+    $('#syncMenuLogout')?.addEventListener('click', (event) => {
         closeSyncMenu();
-        void logoutFromOneDrive();
+        logoutFromOneDrive(event);
     });
     document.addEventListener('click', (event) => {
         if (!event.target.closest?.('#syncMenu')) closeSyncMenu();

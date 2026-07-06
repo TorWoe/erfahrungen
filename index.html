@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Erfahrungen</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=onedrive-sync-cache-20260706-main-1">
 </head>
 <body>
     <div class="page-background" aria-hidden="true">
@@ -19,7 +19,7 @@
     <div class="app">
         <header>
             <div class="header-sync" aria-label="OneDrive Synchronisierung">
-                <div class="onedrive-actions">
+                <div class="sync-menu" id="syncMenu" data-open="false">
                     <button class="sync-button" id="syncButton" type="button" disabled>
                         <span class="sync-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" focusable="false">
@@ -29,8 +29,13 @@
                         </span>
                         <span id="syncButtonLabel">OneDrive Sync</span>
                         <span class="sync-dot" id="syncDot" aria-hidden="true"></span>
+                        <span class="sync-caret" aria-hidden="true">▾</span>
                     </button>
-                    <button class="sync-auth-button" id="syncAuthButton" type="button">OneDrive Login</button>
+                    <div class="sync-menu-panel" role="menu" aria-label="OneDrive Optionen">
+                        <button id="syncMenuPrimary" type="button" role="menuitem">OneDrive anmelden</button>
+                        <button id="syncMenuRenew" type="button" role="menuitem" hidden>Anmeldung erneuern</button>
+                        <button id="syncMenuLogout" type="button" role="menuitem" hidden>OneDrive abmelden</button>
+                    </div>
                 </div>
                 <div class="sync-panel" id="syncPanel" data-sync-status="local">
                     <strong id="syncStatusTitle">Nicht angemeldet</strong>
@@ -337,6 +342,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="vendor/msal-browser.min.js?v=2.38.3"></script>
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=onedrive-sync-cache-20260706-main-1"></script>
 </body>
 </html>

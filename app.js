@@ -9,7 +9,7 @@
         tips: 'erf_tips',
     };
     const STORAGE_META_KEY = 'erf_sync_meta';
-    const APP_VERSION = 'onedrive-sync-logout-reload-20260706-1';
+    const APP_VERSION = 'erf-fixed-sync-button-20260709-1';
     const APP_VERSION_FILE = 'app-version.json';
     const APP_REFRESH_PARAM = 'appRefresh';
     const APP_REFRESH_SESSION_KEY = 'erf_app_refresh_version';

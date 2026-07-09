@@ -197,17 +197,21 @@ header > * {
 
 .header-sync {
     position: absolute;
-    top: 24px;
-    right: 28px;
     z-index: 2;
+    top: 34px;
+    right: 40px;
     display: grid;
     justify-items: end;
-    gap: 12px;
-    max-width: min(44vw, 540px);
+    gap: 14px;
+    max-width: min(42vw, 540px);
+    padding-top: 56px;
 }
 
 .sync-menu {
-    position: relative;
+    position: fixed;
+    top: max(24px, env(safe-area-inset-top));
+    right: max(24px, env(safe-area-inset-right));
+    z-index: 50;
     display: inline-flex;
     justify-content: flex-end;
 }
@@ -216,7 +220,7 @@ header > * {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 40px;
+    min-height: 42px;
     border-radius: 999px;
     font: inherit;
     font-size: 0.84rem;
@@ -1834,6 +1838,8 @@ a {
     }
 
     .sync-menu {
+        top: max(16px, env(safe-area-inset-top));
+        right: max(16px, env(safe-area-inset-right));
         align-self: flex-start;
     }
 
@@ -1875,12 +1881,8 @@ a {
         border-radius: 26px;
     }
 
-    .sync-menu {
-        width: 100%;
-    }
-
     .sync-button {
-        width: 100%;
+        max-width: calc(100vw - 32px);
     }
 
     .sync-panel,
@@ -1889,9 +1891,8 @@ a {
     }
 
     .sync-menu-panel {
-        left: 0;
-        right: auto;
-        width: min(100%, 260px);
+        right: 0;
+        width: min(calc(100vw - 32px), 260px);
     }
 
     nav {
